@@ -1,6 +1,6 @@
 <?php
 	define('EXPECTED_CONFIG_VERSION', 26);
-	define('SCHEMA_VERSION', 115);
+	define('SCHEMA_VERSION', 116);
 
 	define('LABEL_BASE_INDEX', -1024);
 	define('PLUGIN_FEED_BASE_INDEX', -128);
@@ -2143,12 +2143,18 @@
 				if ($commandpair[1]) {
 					array_push($query_keywords, "($not (LOWER(ttrss_entries.title) LIKE '%".
 						db_escape_string($link, mb_strtolower($commandpair[1]))."%'))");
+				} else {
+					array_push($query_keywords, "(UPPER(ttrss_entries.title) $not LIKE UPPER('%$k%')
+							OR UPPER(ttrss_entries.content) $not LIKE UPPER('%$k%'))");
 				}
 				break;
 			case "author":
 				if ($commandpair[1]) {
 					array_push($query_keywords, "($not (LOWER(author) LIKE '%".
 						db_escape_string($link, mb_strtolower($commandpair[1]))."%'))");
+				} else {
+					array_push($query_keywords, "(UPPER(ttrss_entries.title) $not LIKE UPPER('%$k%')
+							OR UPPER(ttrss_entries.content) $not LIKE UPPER('%$k%'))");
 				}
 				break;
 			case "note":
@@ -2160,6 +2166,9 @@
 					else
 						array_push($query_keywords, "($not (LOWER(note) LIKE '%".
 							db_escape_string($link, mb_strtolower($commandpair[1]))."%'))");
+				} else {
+					array_push($query_keywords, "(UPPER(ttrss_entries.title) $not LIKE UPPER('%$k%')
+							OR UPPER(ttrss_entries.content) $not LIKE UPPER('%$k%'))");
 				}
 				break;
 			case "star":
@@ -2169,6 +2178,9 @@
 						array_push($query_keywords, "($not (marked = true))");
 					else
 						array_push($query_keywords, "($not (marked = false))");
+				} else {
+					array_push($query_keywords, "(UPPER(ttrss_entries.title) $not LIKE UPPER('%$k%')
+							OR UPPER(ttrss_entries.content) $not LIKE UPPER('%$k%'))");
 				}
 				break;
 			case "pub":
@@ -2178,6 +2190,9 @@
 					else
 						array_push($query_keywords, "($not (published = false))");
 
+				} else {
+					array_push($query_keywords, "(UPPER(ttrss_entries.title) $not LIKE UPPER('%$k%')
+							OR UPPER(ttrss_entries.content) $not LIKE UPPER('%$k%'))");
 				}
 				break;
 			default:
@@ -3126,18 +3141,23 @@
 					position=\"below\">$tags_str_full</div>";
 
 				global $pluginhost;
-
 				foreach ($pluginhost->get_hooks($pluginhost::HOOK_ARTICLE_BUTTON) as $p) {
 					$rv['content'] .= $p->hook_article_button($line);
 				}
-
 
 			} else {
 				$tags_str = strip_tags($tags_str);
 				$rv['content'] .= "<span id=\"ATSTR-$id\">$tags_str</span>";
 			}
 			$rv['content'] .= "</div>";
-			$rv['content'] .= "<div clear='both'>$entry_comments</div>";
+			$rv['content'] .= "<div clear='both'>";
+
+			global $pluginhost;
+			foreach ($pluginhost->get_hooks($pluginhost::HOOK_ARTICLE_LEFT_BUTTON) as $p) {
+				$rv['content'] .= $p->hook_article_left_button($line);
+			}
+
+			$rv['content'] .= "$entry_comments</div>";
 
 			if ($line["orig_feed_id"]) {
 
