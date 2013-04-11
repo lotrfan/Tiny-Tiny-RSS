@@ -41,6 +41,7 @@ div.postReply div.postHeader {
 
 div.postReply div.postTitle {
 	overflow : hidden;
+	text-overflow: ellipsis;
 	white-space : nowrap;
 }
 
@@ -248,6 +249,8 @@ div.filterTestHolder {
 	border-style : solid;
 	background : #fafafa;
 	display : block;
+	max-width : 98%;
+	overflow : auto;
 }
 
 div.notice, div.warning, div.error {
@@ -768,12 +771,17 @@ div.fatalError textarea {
 	border-left-width : 0px;
 	border-bottom-width : 0px;
 	border-top-width : 0px;
+	overflow : auto;
 }
 
 #headlines-wrap-inner {
 	padding : 0px;
 	margin : 0px;
 	border-width : 0px;
+}
+
+#feedTree {
+	overflow : visible;
 }
 
 #headlines-frame {

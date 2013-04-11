@@ -2,7 +2,7 @@
 
 class API extends Handler {
 
-	const API_LEVEL  = 5;
+	const API_LEVEL  = 6;
 
 	const STATUS_OK  = 0;
 	const STATUS_ERR = 1;
@@ -108,6 +108,11 @@ class API extends Handler {
 	/* Method added for ttrss-reader for Android */
 	function getCounters() {
 		print $this->wrap(self::STATUS_OK, getAllCounters($this->link));
+	}
+
+	function getFeedStats() {
+		$feeds = $this->api_get_feed_stats($this->link);
+		print $this->wrap(self::STATUS_OK, $feeds);
 	}
 
 	function getFeeds() {
@@ -479,6 +484,38 @@ class API extends Handler {
 			print $this->wrap(self::STATUS_ERR, array("error" => 'Publishing failed'));
 		}
 	}
+
+	static function api_get_feed_stats($link) {
+
+        $feeds = array();
+
+        $result = db_query($link, "SELECT ttrss_feeds.id, ttrss_feeds.title,".
+                           " MIN(ttrss_entries.id) AS first, MAX(ttrss_entries.id) AS last,".
+                           " COUNT(ttrss_entries.id) AS total".
+                           " FROM ttrss_entries, ttrss_user_entries, ttrss_feeds".
+                           " WHERE ttrss_user_entries.feed_id = ttrss_feeds.id".
+                           " AND ttrss_user_entries.ref_id = ttrss_entries.id".
+                           " AND ttrss_user_entries.owner_uid = ".$_SESSION["uid"].
+                           " GROUP BY ttrss_feeds.title");
+
+        while ($line = db_fetch_assoc($result)) {
+
+            $unread = getFeedUnread($link, $line["id"]);
+
+            $row = array(
+                "id" => (int)$line["id"],
+                "title" => $line["title"],
+                "first" => (int)$line["first"],
+                "last" => (int)$line["last"],
+                "total" => (int)$line["total"],
+                "unread" => (int)$unread
+            );
+
+            array_push($feeds, $row);
+        }
+
+        return $feeds;
+}
 
 	static function api_get_feeds($link, $cat_id, $unread_only, $limit, $offset, $include_nested = false) {
 
