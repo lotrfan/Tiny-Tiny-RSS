@@ -1,6 +1,7 @@
 SET NAMES utf8;
 SET CHARACTER SET utf8;
 
+drop table if exists ttrss_error_log;
 drop table if exists ttrss_plugin_storage;
 drop table if exists ttrss_linked_feeds;
 drop table if exists ttrss_linked_instances;
@@ -108,6 +109,7 @@ create table ttrss_feeds (id integer not null auto_increment primary key,
 	purge_interval integer not null default 0,
 	last_updated datetime default 0,
 	last_error varchar(250) not null default '',
+	favicon_avg_color varchar(11) default null,
 	site_url varchar(250) not null default '',
 	auth_login varchar(250) not null default '',
 	auth_pass varchar(250) not null default '',
@@ -298,7 +300,7 @@ create table ttrss_tags (id integer primary key auto_increment,
 
 create table ttrss_version (schema_version int not null) ENGINE=InnoDB DEFAULT CHARSET=UTF8;
 
-insert into ttrss_version values (116);
+insert into ttrss_version values (118);
 
 create table ttrss_enclosures (id integer primary key auto_increment,
 	content_url text not null,
@@ -477,5 +479,15 @@ create table ttrss_plugin_storage (
 	content longtext not null,
   	foreign key (owner_uid) references ttrss_users(id) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=UTF8;
 
+create table ttrss_error_log(
+	id integer not null auto_increment primary key,
+	owner_uid integer,
+	errno integer not null,
+	errstr text not null,
+	filename text not null,
+	lineno integer not null,	
+	context text not null,
+	created_at datetime not null,
+	foreign key (owner_uid) references ttrss_users(id) ON DELETE SET NULL) ENGINE=InnoDB DEFAULT CHARSET=UTF8;
 
 commit;

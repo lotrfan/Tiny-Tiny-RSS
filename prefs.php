@@ -25,8 +25,6 @@
 
 	login_sequence($link);
 
-	no_cache_incantation();
-
 	header('Content-Type: text/html; charset=utf-8');
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -132,6 +130,9 @@
 	<div id="userConfigTab" dojoType="dijit.layout.ContentPane"
 		href="backend.php?op=pref-users"
 		title="<?php echo __('Users') ?>"></div>
+	<div id="systemConfigTab" dojoType="dijit.layout.ContentPane"
+		href="backend.php?op=pref-system"
+		title="<?php echo __('System') ?>"></div>
 <?php } ?>
 <?php
 	$pluginhost->run_hooks($pluginhost::HOOK_PREFS_TABS,

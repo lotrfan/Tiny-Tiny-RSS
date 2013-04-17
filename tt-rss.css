@@ -57,6 +57,7 @@ div.postReply div.postContent {
 div.postReply div.postContent img {
 	border-width : 0px;
 	max-width : 98%;
+	height: auto;
 }
 
 div.postReply div.postEnclosures {
@@ -999,6 +1000,11 @@ body#ttrssZoom div.footer {
 	text-align : center;
 }
 
+body#ttrssZoom div.postContent img {
+	max-width : 650px;
+	height : auto;
+}
+
 select.attachments {
 	display : block;
 	margin-top : 10px;
@@ -1013,3 +1019,6 @@ div.hl.active a.title {
 	color : #4684ff;
 }
 
+#selected_prompt {
+	margin-right : 25px;
+}

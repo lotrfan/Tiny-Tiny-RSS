@@ -368,6 +368,9 @@ function toggleSelectRow2(sender, row, is_cdm) {
 		row.addClassName('Selected');
 	else
 		row.removeClassName('Selected');
+
+	if (typeof updateSelectedPrompt != undefined)
+		updateSelectedPrompt();
 }
 
 
@@ -379,6 +382,9 @@ function toggleSelectRow(sender, row) {
 		row.addClassName('Selected');
 	else
 		row.removeClassName('Selected');
+
+	if (typeof updateSelectedPrompt != undefined)
+		updateSelectedPrompt();
 }
 
 function checkboxToggleElement(elem, id) {
@@ -810,7 +816,7 @@ function quickAddFeed() {
 								notify('');
 								Element.hide("feed_add_spinner");
 
-								console.log("GOT RC: " + rc);
+								console.log(rc);
 
 								switch (parseInt(rc['code'])) {
 								case 1:
@@ -865,6 +871,8 @@ function quickAddFeed() {
 
 									while (select.getOptions().length > 0)
 										select.removeOption(0);
+
+									select.addOption({value: '', label: __("Expand to select feed")});
 
 									var count = 0;
 									for (var feedUrl in feeds) {

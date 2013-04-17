@@ -9,18 +9,6 @@ class Feeds extends Handler_Protected {
 		return array_search($method, $csrf_ignored) !== false;
 	}
 
-	private function make_gradient($end, $class) {
-		$start = $class == "even" ? "#f0f0f0" : "#ffffff";
-
-		return "style='background: linear-gradient(left , $start 6%, $end 100%);
-			background: -o-linear-gradient(left , $start 6%, $end 100%);
-			background: -moz-linear-gradient(left , $start 6%, $end 100%);
-			background: -webkit-linear-gradient(left , $start 6%, $end 100%);
-			background: -ms-linear-gradient(left , $start 6%, $end 100%);
-			background: -webkit-gradient(linear, left top, right top,
-				color-stop(0.06, $start), color-stop(1, $end));'";
-	}
-
 	private function format_headline_subtoolbar($feed_site_url, $feed_title,
 			$feed_id, $is_cat, $search,
 			$search_mode, $view_mode, $error) {
@@ -61,6 +49,7 @@ class Feeds extends Handler_Protected {
 		// right part
 
 		$reply .= "<span class='r'>";
+		$reply .= "<span id='selected_prompt'></span>";
 		$reply .= "<span id='feed_title'>";
 
 		if ($feed_site_url) {
@@ -160,6 +149,8 @@ class Feeds extends Handler_Protected {
 		$disable_cache = false;
 
 		$reply = array();
+
+		$rgba_cache = array();
 
 		$timing_info = microtime(true);
 
@@ -304,7 +295,6 @@ class Feeds extends Handler_Protected {
 				$feed_id = $line["feed_id"];
 				$label_cache = $line["label_cache"];
 				$labels = false;
-				$label_row_style = "";
 
 				if ($label_cache) {
 					$label_cache = json_decode($label_cache, true);
@@ -318,22 +308,6 @@ class Feeds extends Handler_Protected {
 				}
 
 				if (!is_array($labels)) $labels = get_article_labels($this->link, $id);
-
-				if (count($labels) > 0) {
-					for ($i = 0; $i < min(4, count($labels)); $i++) {
-						$bg = rgb2hsl(_color_unpack($labels[$i][3]));
-
-						if ($bg && $bg[1] > 0) {
-							$bg[1] = 0.1;
-							$bg[2] = 1;
-
-							$bg = _color_pack(hsl2rgb($bg));
-							$label_row_style = $this->make_gradient($bg, $class);;
-
-							break;
-						}
-					}
-				}
 
 				$labels_str = "<span id=\"HLLCTR-$id\">";
 				$labels_str .= format_article_labels($labels, $id);
@@ -414,7 +388,7 @@ class Feeds extends Handler_Protected {
 				$entry_author = $line["author"];
 
 				if ($entry_author) {
-					$entry_author = " - $entry_author";
+					$entry_author = " &mdash; $entry_author";
 				}
 
 				$has_feed_icon = feed_has_icon($feed_id);
@@ -426,6 +400,34 @@ class Feeds extends Handler_Protected {
 				}
 
 				$entry_site_url = $line["site_url"];
+
+				//setting feed headline background color, needs to change text color based on dark/light
+				$fav_color = $line['favicon_avg_color'];
+
+				require_once "colors.php";
+
+				if ($fav_color) {
+					if (!isset($rgba_cache[$feed_id])) {
+						$rgba_cache[$feed_id] = join(",", _color_unpack($fav_color));
+					}
+
+					$rgba = $rgba_cache[$feed_id];
+
+					if (sql_bool_to_bool($line["unread"]))
+						$endalpha = '0.3';
+					else
+						$endalpha = '0.1';
+
+					// W3C definition seems to work in FF and Chrome
+					$row_background = "background-image : linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba($rgba, $endalpha) 100%);";
+
+					/* $row_background = "background-image : -moz-linear-gradient(left, rgba(255, 255, 255, 0) 50%, rgba($rgba, 0.2) 100%);".
+						"background-image : linear-gradient(to right, rgba(255, 255, 255, 0) 50%, rgba($rgba, 0.2) 100%);";
+						"background-image : -webkit-gradient(linear, left top, right top, color-stop( 50%, rgba(255,255,255,0)),
+							color-stop(100%, rgba($rgba, 0.2)));"; */
+				} else {
+					$row_background = "";
+				}
 
 				if (!get_pref($this->link, 'COMBINED_DISPLAY_MODE')) {
 
@@ -450,7 +452,7 @@ class Feeds extends Handler_Protected {
 					$mouseover_attrs = "onmouseover='postMouseIn(event, $id)'
 						onmouseout='postMouseOut($id)'";
 
-					$reply['content'] .= "<div class='hl $class' id='RROW-$id' $label_row_style $mouseover_attrs>";
+					$reply['content'] .= "<div class='hl $class' id='RROW-$id' $mouseover_attrs style='$row_background'>";
 
 					$reply['content'] .= "<div class='hlLeft'>";
 
@@ -556,8 +558,7 @@ class Feeds extends Handler_Protected {
 					$reply['content'] .= "<div class=\"cdm $expanded_class $class\"
 						id=\"RROW-$id\" $mouseover_attrs'>";
 
-					$reply['content'] .= "<div class=\"cdmHeader\">";
-
+					$reply['content'] .= "<div class=\"cdmHeader\" style=\"$row_background\">";
 					$reply['content'] .= "<div style=\"vertical-align : middle\">";
 
 					$reply['content'] .= "<input dojoType=\"dijit.form.CheckBox\"

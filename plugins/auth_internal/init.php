@@ -52,17 +52,18 @@ class Auth_Internal extends Plugin implements IAuthModule {
 							$return = urlencode($_REQUEST["return"]);
 							?><html>
 								<head><title>Tiny Tiny RSS</title></head>
-							<body>
+								<?php echo stylesheet_tag("utility.css") ?>
+							<body class="otp"><div class="content">
 							<form action="public.php?return=<?php echo $return ?>"
-									method="POST">
+									method="POST" class="otpform">
 								<input type="hidden" name="op" value="login">
 								<input type="hidden" name="login" value="<?php echo htmlspecialchars($login) ?>">
 								<input type="hidden" name="password" value="<?php echo htmlspecialchars($password) ?>">
 
 								<label><?php echo __("Please enter your one time password:") ?></label>
-								<input type="password" size="6" name="otp"/>
+								<input autocomplete="off" size="6" name="otp" value=""/>
 								<input type="submit" value="Continue"/>
-							</form>
+							</form></div>
 							<script type="text/javascript">
 								document.forms[0].otp.focus();
 							</script>
