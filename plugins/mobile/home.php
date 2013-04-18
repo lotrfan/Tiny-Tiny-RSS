@@ -16,18 +16,14 @@
 	require_once "config.php";
 	require_once "mobile-functions.php";
 
-	$link = db_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+	login_sequence(true);
 
-	init_connection($link);
-
-	login_sequence($link, true);
-
-	$use_cats = mobile_get_pref($link, 'ENABLE_CATS');
-	$offset = (int) db_escape_string($link, $_REQUEST["skip"]);
+	$use_cats = mobile_get_pref('ENABLE_CATS');
+	$offset = (int) db_escape_string($_REQUEST["skip"]);
 
 	if ($use_cats) {
 		render_categories_list($link);
 	} else {
-		render_flat_feed_list($link, $offset);
+		render_flat_feed_list($offset);
 	}
 ?>

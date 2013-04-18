@@ -16,14 +16,10 @@
 	require_once "config.php";
 	require_once "mobile-functions.php";
 
-	$link = db_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+	login_sequence(true);
 
-	init_connection($link);
+	$cat_id = db_escape_string($_REQUEST["id"]);
 
-	login_sequence($link, true);
-
-	$cat_id = db_escape_string($link, $_REQUEST["id"]);
-
-  	render_category($link, $cat_id);
+  	render_category($cat_id);
 ?>
 

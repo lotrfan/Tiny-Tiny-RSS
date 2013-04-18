@@ -12,6 +12,7 @@
 		exit;
 	}
 
+	require_once "autoload.php";
 	require_once "sessions.php";
 	require_once "functions.php";
 	require_once "sanity_check.php";
@@ -19,11 +20,9 @@
 	require_once "config.php";
 	require_once "db-prefs.php";
 
-	$link = db_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+	if (!init_plugins()) return;
 
-	if (!init_connection($link)) return;
-
-	login_sequence($link);
+	login_sequence();
 
 	header('Content-Type: text/html; charset=utf-8');
 ?>
@@ -38,14 +37,14 @@
 	<?php echo stylesheet_tag("prefs.css"); ?>
 
 	<?php if ($_SESSION["uid"]) {
-		$theme = get_pref($link, "USER_CSS_THEME", $_SESSION["uid"], false);
+		$theme = get_pref( "USER_CSS_THEME", $_SESSION["uid"], false);
 		if ($theme) {
 			echo stylesheet_tag("themes/$theme");
 		}
 	}
 	?>
 
-	<?php print_user_stylesheet($link) ?>
+	<?php print_user_stylesheet() ?>
 
 	<link rel="shortcut icon" type="image/png" href="images/favicon.png"/>
 	<link rel="icon" type="image/png" sizes="72x72" href="images/favicon-72px.png" />
@@ -93,7 +92,7 @@
 
 <body id="ttrssPrefs" class="claro">
 
-<div id="notify" class="notify"><span id="notify_body">&nbsp;</span></div>
+<div id="notify" class="notify" style="display : none"></div>
 <div id="cmdline" style="display : none"></div>
 
 <div id="overlay">
@@ -152,8 +151,6 @@
 </div> <!-- footer -->
 
 </div>
-
-<?php db_close($link); ?>
 
 </body>
 </html>

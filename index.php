@@ -19,6 +19,7 @@
 	set_include_path(dirname(__FILE__) ."/include" . PATH_SEPARATOR .
 		get_include_path());
 
+	require_once "autoload.php";
 	require_once "sessions.php";
 	require_once "functions.php";
 	require_once "sanity_check.php";
@@ -29,9 +30,7 @@
 
 	$mobile = new Mobile_Detect();
 
-	$link = db_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-
-	if (!init_connection($link)) return;
+	if (!init_plugins()) return;
 
 	global $pluginhost;
 
@@ -48,7 +47,7 @@
 		}
 	}
 
-	login_sequence($link);
+	login_sequence();
 
 	header('Content-Type: text/html; charset=utf-8');
 
@@ -64,14 +63,14 @@
 	<?php echo stylesheet_tag("cdm.css"); ?>
 
 	<?php if ($_SESSION["uid"]) {
-		$theme = get_pref($link, "USER_CSS_THEME", $_SESSION["uid"], false);
+		$theme = get_pref( "USER_CSS_THEME", $_SESSION["uid"], false);
 		if ($theme) {
 			echo stylesheet_tag("themes/$theme");
 		}
 	}
 	?>
 
-	<?php print_user_stylesheet($link) ?>
+	<?php print_user_stylesheet() ?>
 
 	<style type="text/css">
 	<?php
@@ -138,7 +137,7 @@
 	</div>
 </div>
 
-<div id="notify" class="notify"><span id="notify_body">&nbsp;</span></div>
+<div id="notify" class="notify" style="display : none"></div>
 <div id="cmdline" style="display : none"></div>
 <div id="headlines-tmp" style="display : none"></div>
 
@@ -283,8 +282,6 @@
 </div>
 </div>
 </div>
-
-<?php db_close($link); ?>
 
 </body>
 </html>

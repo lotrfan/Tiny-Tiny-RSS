@@ -6,7 +6,7 @@ require_once "classes/logger/sql.php";
 function ttrss_error_handler($errno, $errstr, $file, $line, $context) {
 	global $logger;
 
-	if (error_reporting() == 0) return false;
+	if (error_reporting() == 0 || !$errno) return false;
 
 	if (!$logger) $logger = new Logger_SQL();
 
@@ -30,6 +30,8 @@ function ttrss_fatal_handler() {
 		$line = $error["line"];
 		$errstr  = $error["message"];
 
+		if (!$errno) return false;
+
 		$context = debug_backtrace();
 
 		$file = substr(str_replace(dirname(dirname(__FILE__)), "", $file), 1);
@@ -37,9 +39,14 @@ function ttrss_fatal_handler() {
 		if (!$logger) $logger = new Logger_SQL();
 
 		if ($logger) {
-			$logger->log_error($errno, $errstr, $file, $line, $context);
+			if ($logger->log_error($errno, $errstr, $file, $line, $context)) {
+				return true;
+			}
 		}
+		return false;
 	}
+
+	return false;
 }
 
 register_shutdown_function('ttrss_fatal_handler');

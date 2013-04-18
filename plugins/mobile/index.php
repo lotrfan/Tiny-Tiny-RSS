@@ -16,11 +16,7 @@
 	require_once "config.php";
 	require_once "mobile-functions.php";
 
-	$link = db_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-
-	init_connection($link);
-
-	login_sequence($link, true);
+	login_sequence(true);
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
          "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -76,13 +72,13 @@
     </div>
 
 	<?php
-	$use_cats = mobile_get_pref($link, 'ENABLE_CATS');
-	$offset = (int) db_escape_string($link, $_REQUEST["skip"]);
+	$use_cats = mobile_get_pref('ENABLE_CATS');
+	$offset = (int) db_escape_string($_REQUEST["skip"]);
 
 	if ($use_cats) {
 		render_categories_list($link);
 	} else {
-		render_flat_feed_list($link, $offset);
+		render_flat_feed_list($offset);
 	}
 	?>
 

@@ -16,17 +16,13 @@
 	require_once "config.php";
 	require_once "mobile-functions.php";
 
-	$link = db_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+	login_sequence(true);
 
-	init_connection($link);
+	$id = db_escape_string($_REQUEST["id"]);
+	$feed_id = db_escape_string($_REQUEST["feed"]);
+	$cat_id = db_escape_string($_REQUEST["cat"]);
+	$is_cat = db_escape_string($_REQUEST["is_cat"]);
 
-	login_sequence($link, true);
-
-	$id = db_escape_string($link, $_REQUEST["id"]);
-	$feed_id = db_escape_string($link, $_REQUEST["feed"]);
-	$cat_id = db_escape_string($link, $_REQUEST["cat"]);
-	$is_cat = db_escape_string($link, $_REQUEST["is_cat"]);
-
-  	render_article($link, $id, $feed_id, $cat_id, $is_cat);
+  	render_article($id, $feed_id, $cat_id, $is_cat);
 ?>
 

@@ -7,6 +7,7 @@
 
 	chdir(dirname(__FILE__));
 
+	require_once "autoload.php";
 	require_once "functions.php";
 	require_once "rssfuncs.php";
 	require_once "config.php";
@@ -17,10 +18,7 @@
 	if (!defined('PHP_EXECUTABLE'))
 		define('PHP_EXECUTABLE', '/usr/bin/php');
 
-	// Create a database connection.
-	$link = db_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-
-	init_connection($link);
+	init_plugins();
 
 	$longopts = array("feeds",
 			"feedbrowser",
@@ -31,6 +29,7 @@
 			"quiet",
 			"log:",
 			"indexes",
+			"pidlock:",
 			"update-schema",
 			"convert-filters",
 			"force-update",
@@ -88,6 +87,18 @@
 		return;
 	}
 
+	if (!isset($options['daemon'])) {
+		require_once "errorhandler.php";
+	}
+
+	if (!isset($options['update-schema'])) {
+		$schema_version = get_schema_version();
+
+		if ($schema_version != SCHEMA_VERSION) {
+			die("Schema version is wrong, please upgrade the database.\n");
+		}
+	}
+
 	define('QUIET', isset($options['quiet']));
 
 	if (isset($options["log"])) {
@@ -106,8 +117,22 @@
 		$lock_filename = $lock_filename . "-task_" . $options["task"];
 	}
 
+	if (isset($options["pidlock"])) {
+		$my_pid = $options["pidlock"];
+		$lock_filename = "update_daemon-$my_pid.lock";
+
+	}
+
+	_debug("Lock: $lock_filename");
+
 	$lock_handle = make_lockfile($lock_filename);
 	$must_exit = false;
+
+	if (isset($options["task"]) && isset($options["pidlock"])) {
+		$waits = $options["task"] * 5;
+		_debug("Waiting before update ($waits)");
+		sleep($waits);
+	}
 
 	// Try to lock a file in order to avoid concurrent update.
 	if (!$lock_handle) {
@@ -118,22 +143,22 @@
 	if (isset($options["force-update"])) {
 		_debug("marking all feeds as needing update...");
 
-		db_query($link, "UPDATE ttrss_feeds SET last_update_started = '1970-01-01',
+		db_query( "UPDATE ttrss_feeds SET last_update_started = '1970-01-01',
 				last_updated = '1970-01-01'");
 	}
 
 	if (isset($options["feeds"])) {
 		// Update all feeds needing a update.
-		update_daemon_common($link);
+		update_daemon_common();
 
 		// Update feedbrowser
-		$count = update_feedbrowser_cache($link);
+		$count = update_feedbrowser_cache();
 		_debug("Feedbrowser updated, $count feeds processed.");
 
 		// Purge orphans and cleanup tags
-		purge_orphans($link, true);
+		purge_orphans( true);
 
-		$rc = cleanup_tags($link, 14, 50000);
+		$rc = cleanup_tags( 14, 50000);
 		_debug("Cleaned $rc cached tags.");
 
 		global $pluginhost;
@@ -141,7 +166,7 @@
 	}
 
 	if (isset($options["feedbrowser"])) {
-		$count = update_feedbrowser_cache($link);
+		$count = update_feedbrowser_cache();
 		print "Finished, $count feeds processed.\n";
 	}
 
@@ -164,14 +189,14 @@
 		// or regenerate feedbrowser cache
 
 		if (rand(0,100) > 30) {
-			update_daemon_common($link);
+			update_daemon_common();
 		} else {
-			$count = update_feedbrowser_cache($link);
+			$count = update_feedbrowser_cache();
 			_debug("Feedbrowser updated, $count feeds processed.");
 
-			purge_orphans($link, true);
+			purge_orphans( true);
 
-			$rc = cleanup_tags($link, 14, 50000);
+			$rc = cleanup_tags( 14, 50000);
 
 			_debug("Cleaned $rc cached tags.");
 
@@ -182,7 +207,7 @@
 	}
 
 	if (isset($options["cleanup-tags"])) {
-		$rc = cleanup_tags($link, 14, 50000);
+		$rc = cleanup_tags( 14, 50000);
 		_debug("$rc tags deleted.\n");
 	}
 
@@ -196,12 +221,12 @@
 		_debug("clearing existing indexes...");
 
 		if (DB_TYPE == "pgsql") {
-			$result = db_query($link, "SELECT relname FROM
+			$result = db_query( "SELECT relname FROM
 				pg_catalog.pg_class WHERE relname LIKE 'ttrss_%'
 					AND relname NOT LIKE '%_pkey'
 				AND relkind = 'i'");
 		} else {
-			$result = db_query($link, "SELECT index_name,table_name FROM
+			$result = db_query( "SELECT index_name,table_name FROM
 				information_schema.statistics WHERE index_name LIKE 'ttrss_%'");
 		}
 
@@ -214,7 +239,7 @@
 					$line['table_name']." DROP INDEX ".$line['index_name'];
 				_debug($statement);
 			}
-			db_query($link, $statement, false);
+			db_query( $statement, false);
 		}
 
 		_debug("reading indexes from schema for: " . DB_TYPE);
@@ -231,7 +256,7 @@
 					$statement = "CREATE INDEX $index ON $table";
 
 					_debug($statement);
-					db_query($link, $statement);
+					db_query( $statement);
 				}
 			}
 			fclose($fp);
@@ -250,9 +275,9 @@
 
 		_debug("converting filters...");
 
-		db_query($link, "DELETE FROM ttrss_filters2");
+		db_query( "DELETE FROM ttrss_filters2");
 
-		$result = db_query($link, "SELECT * FROM ttrss_filters ORDER BY id");
+		$result = db_query( "SELECT * FROM ttrss_filters ORDER BY id");
 
 		while ($line = db_fetch_assoc($result)) {
 			$owner_uid = $line["owner_uid"];
@@ -285,7 +310,7 @@
 				$_REQUEST = $filter;
 				$_SESSION["uid"] = $owner_uid;
 
-				$filters = new Pref_Filters($link, $_REQUEST);
+				$filters = new Pref_Filters( $_REQUEST);
 				$filters->add();
 			}
 		}
@@ -295,7 +320,7 @@
 	if (isset($options["update-schema"])) {
 		_debug("checking for updates (" . DB_TYPE . ")...");
 
-		$updater = new DbUpdater($link, DB_TYPE, SCHEMA_VERSION);
+		$updater = new DbUpdater(Db::get(), DB_TYPE, SCHEMA_VERSION);
 
 		if ($updater->isUpdateRequired()) {
 			_debug("schema update required, version " . $updater->getSchemaVersion() . " to " . SCHEMA_VERSION);
@@ -322,7 +347,7 @@
 	}
 
 	if (isset($options["list-plugins"])) {
-		$tmppluginhost = new PluginHost($link);
+		$tmppluginhost = new PluginHost(Db::get());
 		$tmppluginhost->load_all($tmppluginhost::KIND_ALL);
 		$enabled = array_map("trim", explode(",", PLUGINS));
 
@@ -344,8 +369,6 @@
 	}
 
 	$pluginhost->run_commands($options);
-
-	db_close($link);
 
 	if ($lock_handle != false) {
 		fclose($lock_handle);
