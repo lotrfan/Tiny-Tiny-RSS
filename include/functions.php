@@ -8,7 +8,7 @@
 	$fetch_last_error = false;
 	$fetch_last_error_code = false;
 	$fetch_last_content_type = false;
-	$pluginhost = false;
+	$fetch_curl_used = false;
 
 	mb_internal_encoding("UTF-8");
 	date_default_timezone_set('UTC');
@@ -135,13 +135,14 @@
 	 * @param string $msg The debug message.
 	 * @return void
 	 */
-	function _debug($msg) {
+	function _debug($msg, $show = true) {
+
 		$ts = strftime("%H:%M:%S", time());
 		if (function_exists('posix_getpid')) {
 			$ts = "$ts/" . posix_getpid();
 		}
 
-		if (!(defined('QUIET') && QUIET)) {
+		if ($show && !(defined('QUIET') && QUIET)) {
 			print "[$ts] $msg\n";
 		}
 
@@ -240,7 +241,7 @@
 		}
 
 		$rows = db_affected_rows($result);
-		
+
 		ccache_update($feed_id, $owner_uid);
 
 		if ($debug) {
@@ -305,10 +306,13 @@
 		global $fetch_last_error;
 		global $fetch_last_error_code;
 		global $fetch_last_content_type;
+		global $fetch_curl_used;
 
 		$url = str_replace(' ', '%20', $url);
 
-		if (!defined('NO_CURL') && function_exists('curl_init') && !ini_get("open_basedir")) {
+		if (!defined('NO_CURL') && function_exists('curl_init')) {
+
+			$fetch_curl_used = true;
 
 			if (ini_get("safe_mode") || ini_get("open_basedir")) {
 				$ch = curl_init(geturl($url));
@@ -330,7 +334,7 @@
 			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 			curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
 			curl_setopt($ch, CURLOPT_USERAGENT, SELF_USER_AGENT);
-			curl_setopt($ch, CURLOPT_ENCODING , "gzip");
+			curl_setopt($ch, CURLOPT_ENCODING, "");
 			curl_setopt($ch, CURLOPT_REFERER, $url);
 
 			if ($post_query) {
@@ -373,6 +377,9 @@
 
 			return $contents;
 		} else {
+
+			$fetch_curl_used = false;
+
 			if ($login && $pass){
 				$url_parts = array();
 
@@ -385,20 +392,43 @@
 				}
 			}
 
-			$data = @file_get_contents($url);
+			if (!$post_query && $timestamp) {
+				$context = stream_context_create(array(
+					'http' => array(
+						'method' => 'GET',
+						'header' => "If-Modified-Since: ".gmdate("D, d M Y H:i:s \\G\\M\\T\r\n", $timestamp)
+					)));
+			} else {
+				$context = NULL;
+			}
+
+			$old_error = error_get_last();
+
+			$data = @file_get_contents($url, false, $context);
 
 			$fetch_last_content_type = false;  // reset if no type was sent from server
-			foreach ($http_response_header as $h) {
-				if (substr(strtolower($h), 0, 13) == 'content-type:') {
-					$fetch_last_content_type = substr($h, 14);
-					// don't abort here b/c there might be more than one
-					// e.g. if we were being redirected -- last one is the right one
+			if (is_array($http_response_header)) {
+				foreach ($http_response_header as $h) {
+					if (substr(strtolower($h), 0, 13) == 'content-type:') {
+						$fetch_last_content_type = substr($h, 14);
+						// don't abort here b/c there might be more than one
+						// e.g. if we were being redirected -- last one is the right one
+					}
+
+					if (substr(strtolower($h), 0, 7) == 'http/1.') {
+						$fetch_last_error_code = (int) substr($h, 9, 3);
+					}
 				}
 			}
 
-			if (!$data && function_exists('error_get_last')) {
+			if (!$data) {
 				$error = error_get_last();
-				$fetch_last_error = $error["message"];
+
+				if ($error['message'] != $old_error['message']) {
+					$fetch_last_error = $error["message"];
+				} else {
+					$fetch_last_error = "HTTP Code: $fetch_last_error_code";
+				}
 			}
 			return $data;
 		}
@@ -615,8 +645,7 @@
 		if (!SINGLE_USER_MODE) {
 			$user_id = false;
 
-			global $pluginhost;
-			foreach ($pluginhost->get_hooks($pluginhost::HOOK_AUTH_USER) as $plugin) {
+			foreach (PluginHost::getInstance()->get_hooks(PluginHost::HOOK_AUTH_USER) as $plugin) {
 
 				$user_id = (int) $plugin->authenticate($login, $password);
 
@@ -727,22 +756,18 @@
 		if ($owner_uid) {
 			$plugins = get_pref("_ENABLED_PLUGINS", $owner_uid);
 
-			global $pluginhost;
-			$pluginhost->load($plugins, $pluginhost::KIND_USER, $owner_uid);
+			PluginHost::getInstance()->load($plugins, PluginHost::KIND_USER, $owner_uid);
 
 			if (get_schema_version() > 100) {
-				$pluginhost->load_data();
+				PluginHost::getInstance()->load_data();
 			}
 		}
 	}
 
 	function login_sequence() {
-		$_SESSION["prefs_cache"] = false;
-
 		if (SINGLE_USER_MODE) {
 			@session_start();
 			authenticate_user("admin", null);
-			cache_prefs();
 			load_user_plugins($_SESSION["uid"]);
 		} else {
 			if (!validate_session()) $_SESSION["uid"] = false;
@@ -776,7 +801,6 @@
 			}
 
 			if ($_SESSION["uid"]) {
-				cache_prefs();
 				load_user_plugins($_SESSION["uid"]);
 
 				/* cleanup ccache */
@@ -1440,18 +1464,13 @@
 			array_push($ret_arr, $cv);
 		}
 
-		global $pluginhost;
+		$feeds = PluginHost::getInstance()->get_feeds(-1);
 
-		if ($pluginhost) {
-			$feeds = $pluginhost->get_feeds(-1);
-
-			if (is_array($feeds)) {
-				foreach ($feeds as $feed) {
-					$cv = array("id" => PluginHost::pfeed_to_feed_id($feed['id']),
-						"counter" => $feed['sender']->get_unread($feed['id']));
-
+		if (is_array($feeds)) {
+			foreach ($feeds as $feed) {
+				$cv = array("id" => PluginHost::pfeed_to_feed_id($feed['id']),
+					"counter" => $feed['sender']->get_unread($feed['id']));
 					array_push($ret_arr, $cv);
-				}
 			}
 		}
 
@@ -1561,6 +1580,7 @@
 	 *                     Here you should call extractfeedurls in rpc-backend
 	 *                     to get all possible feeds.
 	 *                 5 - Couldn't download the URL content.
+	 *                 6 - Content is an invalid XML.
 	 */
 	function subscribe_to_feed($url, $cat_id = 0,
 			$auth_login = '', $auth_pass = '') {
@@ -1590,6 +1610,18 @@
 			//use feed url as new URL
 			$url = key($feedUrls);
 		}
+
+		/* libxml_use_internal_errors(true);
+		$doc = new DOMDocument();
+		$doc->loadXML($contents);
+		$error = libxml_get_last_error();
+		libxml_clear_errors();
+
+		if ($error) {
+			$error_message = format_libxml_error($error);
+
+			return array("code" => 6, "message" => $error_message);
+		} */
 
 		if ($cat_id == "0" || !$cat_id) {
 			$cat_qpart = "NULL";
@@ -1979,8 +2011,7 @@
 				"help_dialog" => __("Show help dialog"))
 			);
 
-		global $pluginhost;
-		foreach ($pluginhost->get_hooks($pluginhost::HOOK_HOTKEY_INFO) as $plugin) {
+		foreach (PluginHost::getInstance()->get_hooks(PluginHost::HOOK_HOTKEY_INFO) as $plugin) {
 			$hotkeys = $plugin->hook_hotkey_info($hotkeys);
 		}
 
@@ -2056,8 +2087,7 @@
 			$hotkeys["^(40)|Ctrl-down"] = "next_article_noscroll";
 		}
 
-		global $pluginhost;
-		foreach ($pluginhost->get_hooks($pluginhost::HOOK_HOTKEY_MAP) as $plugin) {
+		foreach (PluginHost::getInstance()->get_hooks(PluginHost::HOOK_HOTKEY_MAP) as $plugin) {
 			$hotkeys = $plugin->hook_hotkey_map($hotkeys);
 		}
 
@@ -2750,18 +2780,14 @@
 
 		$disallowed_attributes = array('id', 'style', 'class');
 
-		global $pluginhost;
-
-		if (isset($pluginhost)) {
-			foreach ($pluginhost->get_hooks($pluginhost::HOOK_SANITIZE) as $plugin) {
-				$retval = $plugin->hook_sanitize($doc, $site_url, $allowed_elements, $disallowed_attributes);
-				if (is_array($retval)) {
-					$doc = $retval[0];
-					$allowed_elements = $retval[1];
-					$disallowed_attributes = $retval[2];
-				} else {
-					$doc = $retval;
-				}
+		foreach (PluginHost::getInstance()->get_hooks(PluginHost::HOOK_SANITIZE) as $plugin) {
+			$retval = $plugin->hook_sanitize($doc, $site_url, $allowed_elements, $disallowed_attributes);
+			if (is_array($retval)) {
+				$doc = $retval[0];
+				$allowed_elements = $retval[1];
+				$disallowed_attributes = $retval[2];
+			} else {
+				$doc = $retval;
 			}
 		}
 
@@ -2936,19 +2962,19 @@
 	function format_warning($msg, $id = "") {
 		global $link;
 		return "<div class=\"warning\" id=\"$id\">
-			<img src=\"images/sign_excl.svg\"><div class='inner'>$msg</div></div>";
+			<span><img src=\"images/sign_excl.svg\"></span><span>$msg</span></div>";
 	}
 
 	function format_notice($msg, $id = "") {
 		global $link;
 		return "<div class=\"notice\" id=\"$id\">
-			<img src=\"images/sign_info.svg\"><div class='inner'>$msg</div></div>";
+			<span><img src=\"images/sign_info.svg\"></span><span>$msg</span></div>";
 	}
 
 	function format_error($msg, $id = "") {
 		global $link;
 		return "<div class=\"error\" id=\"$id\">
-			<img src=\"images/sign_excl.svg\"><div class='inner'>$msg</div></div>";
+			<span><img src=\"images/sign_excl.svg\"></span><span>$msg</span></div>";
 	}
 
 	function print_notice($msg) {
@@ -3062,9 +3088,7 @@
 
 			$line["content"] = sanitize($line["content"], false, $owner_uid,	$line["site_url"]);
 
-			global $pluginhost;
-
-			foreach ($pluginhost->get_hooks($pluginhost::HOOK_RENDER_ARTICLE) as $p) {
+			foreach (PluginHost::getInstance()->get_hooks(PluginHost::HOOK_RENDER_ARTICLE) as $p) {
 				$line = $p->hook_render_article($line);
 			}
 
@@ -3139,8 +3163,7 @@
 					id=\"ATSTRTIP-$id\" connectId=\"ATSTR-$id\"
 					position=\"below\">$tags_str_full</div>";
 
-				global $pluginhost;
-				foreach ($pluginhost->get_hooks($pluginhost::HOOK_ARTICLE_BUTTON) as $p) {
+				foreach (PluginHost::getInstance()->get_hooks(PluginHost::HOOK_ARTICLE_BUTTON) as $p) {
 					$rv['content'] .= $p->hook_article_button($line);
 				}
 
@@ -3151,8 +3174,7 @@
 			$rv['content'] .= "</div>";
 			$rv['content'] .= "<div clear='both'>";
 
-			global $pluginhost;
-			foreach ($pluginhost->get_hooks($pluginhost::HOOK_ARTICLE_LEFT_BUTTON) as $p) {
+			foreach (PluginHost::getInstance()->get_hooks(PluginHost::HOOK_ARTICLE_LEFT_BUTTON) as $p) {
 				$rv['content'] .= $p->hook_article_left_button($line);
 			}
 
@@ -3358,10 +3380,7 @@
 	}
 
 	function init_plugins() {
-		global $pluginhost;
-
-		$pluginhost = new PluginHost(Db::get());
-		$pluginhost->load(PLUGINS, $pluginhost::KIND_ALL);
+		PluginHost::getInstance()->load(PLUGINS, PluginHost::KIND_ALL);
 
 		return true;
 	}
@@ -4064,7 +4083,8 @@
 
 	function geturl($url){
 
-		(function_exists('curl_init')) ? '' : die('cURL Must be installed for geturl function to work. Ask your host to enable it or uncomment extension=php_curl.dll in php.ini');
+		if (!function_exists('curl_init'))
+			return user_error('CURL Must be installed for geturl function to work. Ask your host to enable it or uncomment extension=php_curl.dll in php.ini', E_USER_ERROR);
 
 		$curl = curl_init();
 		$header[0] = "Accept: text/xml,application/xml,application/xhtml+xml,";
@@ -4216,6 +4236,12 @@
 
 	function feed_to_label_id($feed) {
 		return LABEL_BASE_INDEX - 1 + abs($feed);
+	}
+
+	function format_libxml_error($error) {
+		return T_sprintf("LibXML error %s at line %d (column %d): %s",
+				$error->code, $error->line, $error->column,
+				$error->message);
 	}
 
 ?>

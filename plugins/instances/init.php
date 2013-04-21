@@ -351,8 +351,7 @@ class Instances extends Plugin implements IHandler {
 
 		print "</div>"; #pane
 
-		global $pluginhost;
-		$pluginhost->run_hooks($pluginhost::HOOK_PREFS_TAB,
+		PluginHost::getInstance()->run_hooks(PluginHost::HOOK_PREFS_TAB,
 			"hook_prefs_tab", "prefInstances");
 
 		print "</div>"; #container
@@ -445,6 +444,9 @@ class Instances extends Plugin implements IHandler {
 		print json_encode(array("hash" => $hash));
 	}
 
+	function api_version() {
+		return 2;
+	}
 
 }
 ?>

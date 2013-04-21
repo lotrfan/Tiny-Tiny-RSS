@@ -37,13 +37,12 @@
 
 	$method = $_REQUEST["op"];
 
-	global $pluginhost;
-	$override = $pluginhost->lookup_handler("public", $method);
+	$override = PluginHost::getInstance()->lookup_handler("public", $method);
 
 	if ($override) {
 		$handler = $override;
 	} else {
-		$handler = new Handler_Public(Db::get(), $_REQUEST);
+		$handler = new Handler_Public($_REQUEST);
 	}
 
 	if (implements_interface($handler, "IHandler") && $handler->before($method)) {

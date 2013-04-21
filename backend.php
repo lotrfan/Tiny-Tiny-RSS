@@ -113,15 +113,14 @@
 
 	$op = str_replace("-", "_", $op);
 
-	global $pluginhost;
-	$override = $pluginhost->lookup_handler($op, $method);
+	$override = PluginHost::getInstance()->lookup_handler($op, $method);
 
 	if (class_exists($op) || $override) {
 
 		if ($override) {
 			$handler = $override;
 		} else {
-			$handler = new $op(Db::get(), $_REQUEST);
+			$handler = new $op($_REQUEST);
 		}
 
 		if ($handler && implements_interface($handler, 'IHandler')) {

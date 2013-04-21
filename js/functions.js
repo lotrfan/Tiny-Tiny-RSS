@@ -50,6 +50,21 @@ function exception_error(location, e, ext_info) {
 			}
 		}
 
+		try {
+			new Ajax.Request("backend.php", {
+				parameters: {op: "rpc", method: "log", logmsg: msg},
+				onComplete: function (transport) {
+					console.log(transport.responseText);
+				} });
+
+		} catch (eii) {
+			console.log("Exception while trying to log the error.");
+			console.log(eii);
+		}
+
+		msg += "<p>"+ __("The error will be reported to the configured log destination.") +
+			"</p>";
+
 		var content = "<div class=\"fatalError\">" +
 			"<pre>" + msg + "</pre>";
 
@@ -106,7 +121,28 @@ function exception_error(location, e, ext_info) {
 
 		dialog.show();
 
-	} catch (e) {
+	} catch (ei) {
+		console.log("Exception while trying to report an exception. Oh boy.");
+		console.log(ei);
+		console.log("Original exception:");
+		console.log(e);
+
+		msg += "\n\nAdditional exception caught while trying to show the error dialog.\n\n" +  format_exception_error('exception_error', ei);
+
+		try {
+			new Ajax.Request("backend.php", {
+				parameters: {op: "rpc", method: "log", logmsg: msg},
+				onComplete: function (transport) {
+					console.log(transport.responseText);
+				} });
+
+		} catch (eii) {
+			console.log("Third exception while trying to log the error! Seriously?");
+			console.log(eii);
+		}
+
+		msg += "\n\nThe error will be reported to the configured log destination.";
+
 		alert(msg);
 	}
 
@@ -816,39 +852,6 @@ function quickAddFeed() {
 									alert(__("Specified URL doesn't seem to contain any feeds."));
 									break;
 								case 4:
-									/* notify_progress("Searching for feed urls...", true);
-
-									new Ajax.Request("backend.php", {
-										parameters: 'op=rpc&method=extractfeedurls&url=' + param_escape(feed_url),
-										onComplete: function(transport, dialog, feed_url) {
-
-											notify('');
-
-											var reply = JSON.parse(transport.responseText);
-
-											var feeds = reply['urls'];
-
-											console.log(transport.responseText);
-
-											var select = dijit.byId("feedDlg_feedContainerSelect");
-
-											while (select.getOptions().length > 0)
-												select.removeOption(0);
-
-											var count = 0;
-											for (var feedUrl in feeds) {
-												select.addOption({value: feedUrl, label: feeds[feedUrl]});
-												count++;
-											}
-
-//											if (count > 5) count = 5;
-//											select.size = count;
-
-											Effect.Appear('feedDlg_feedsContainer', {duration : 0.5});
-										}
-									});
-									break; */
-
 									feeds = rc['feeds'];
 
 									var select = dijit.byId("feedDlg_feedContainerSelect");
@@ -870,6 +873,11 @@ function quickAddFeed() {
 								case 5:
 									alert(__("Couldn't download the specified URL: %s").
 											replace("%s", rc['message']));
+									break;
+								case 6:
+									alert(__("XML validation failed: %s").
+											replace("%s", rc['message']));
+									break;
 									break;
 								case 0:
 									alert(__("You are already subscribed to this feed."));

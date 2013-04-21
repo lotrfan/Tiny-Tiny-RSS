@@ -10,6 +10,10 @@ class PluginHost {
 	private $api_methods = array();
 	private $owner_uid;
 	private $debug;
+	private $last_registered;
+	private static $instance;
+
+	const API_VERSION = 2;
 
 	const HOOK_ARTICLE_BUTTON = 1;
 	const HOOK_ARTICLE_FILTER = 2;
@@ -35,16 +39,32 @@ class PluginHost {
 	const KIND_SYSTEM = 2;
 	const KIND_USER = 3;
 
-	function __construct($dbh) {
-		$this->dbh = $dbh;
+	function __construct() {
+		$this->dbh = Db::get();
 		$this->storage = $_SESSION["plugin_storage"];
 
 		if (!$this->storage) $this->storage = array();
 	}
 
+	private function __clone() {
+		//
+	}
+
+	public static function getInstance() {
+		if (self::$instance == null)
+			self::$instance = new self();
+
+		return self::$instance;
+	}
+
 	private function register_plugin($name, $plugin) {
 		//array_push($this->plugins, $plugin);
 		$this->plugins[$name] = $plugin;
+	}
+
+	// needed for compatibility with API 1
+	function get_link() {
+		return false;
 	}
 
 	function get_dbh() {
@@ -112,6 +132,15 @@ class PluginHost {
 
 				if (class_exists($class) && is_subclass_of($class, "Plugin")) {
 					$plugin = new $class($this);
+
+					$plugin_api = $plugin->api_version();
+
+					if ($plugin_api < PluginHost::API_VERSION) {
+						user_error("Plugin $class is not compatible with current API version (need: " . PluginHost::API_VERSION . ", got: $plugin_api)", E_USER_WARNING);
+						continue;
+					}
+
+					$this->last_registered = $class;
 
 					switch ($kind) {
 					case $this::KIND_SYSTEM:

@@ -377,8 +377,7 @@ class Handler_Public extends Handler {
 
 		cleanup_tags(14, 50000);
 
-		global $pluginhost;
-		$pluginhost->run_hooks($pluginhost::HOOK_UPDATE_TASK, "hook_update_task", $op);
+		PluginHost::getInstance()->run_hooks(PluginHost::HOOK_UPDATE_TASK, "hook_update_task", $op);
 
 	}
 
@@ -509,8 +508,6 @@ class Handler_Public extends Handler {
 	}
 
 	function login() {
-		$_SESSION["prefs_cache"] = array();
-
 		if (!SINGLE_USER_MODE) {
 
 			$login = $this->dbh->escape_string($_POST["login"]);
@@ -541,7 +538,6 @@ class Handler_Public extends Handler {
 
 					if ($this->dbh->num_rows($result) != 0) {
 						$_SESSION["profile"] = $profile;
-						$_SESSION["prefs_cache"] = array();
 					}
 				}
 			} else {
@@ -933,7 +929,7 @@ class Handler_Public extends Handler {
 
 					} else {
 
-						print "<h2>" . "Tiny Tiny RSS database is up to date." . "</h2>";
+						print_notice("Tiny Tiny RSS database is up to date.");
 
 						print "<p><form method=\"GET\" action=\"index.php\">
 							<input type=\"submit\" value=\"".__("Return to Tiny Tiny RSS")."\">
