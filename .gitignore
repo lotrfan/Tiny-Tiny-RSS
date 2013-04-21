@@ -4,6 +4,8 @@
 #*
 .idea/*
 config.php
+config.php.new
+config.php.bak
 feed-icons/*
 cache/*/*
 lock/*
