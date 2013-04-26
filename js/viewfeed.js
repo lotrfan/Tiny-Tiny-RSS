@@ -43,9 +43,7 @@ function headlines_callback2(transport, offset, background, infscroll_req) {
 			if (background) {
 				var content = reply['headlines']['content'];
 
-				if (getInitParam("cdm_auto_catchup") == 1) {
-					content = content + "<div id='headlines-spacer'></div>";
-				}
+				content = content + "<div id='headlines-spacer'></div>";
 				return;
 			}
 
@@ -93,11 +91,9 @@ function headlines_callback2(transport, offset, background, infscroll_req) {
 					}
 				});
 
-				if (getInitParam("cdm_auto_catchup") == 1) {
-					var hsp = $("headlines-spacer");
-					if (!hsp) hsp = new Element("DIV", {"id": "headlines-spacer"});
-					dijit.byId('headlines-frame').domNode.appendChild(hsp);
-				}
+				var hsp = $("headlines-spacer");
+				if (!hsp) hsp = new Element("DIV", {"id": "headlines-spacer"});
+				dijit.byId('headlines-frame').domNode.appendChild(hsp);
 
 				initHeadlinesMenu();
 
@@ -231,6 +227,8 @@ function render_article(article) {
 		try {
 			c.domNode.scrollTop = 0;
 		} catch (e) { };
+
+		PluginHost.run(PluginHost.HOOK_ARTICLE_RENDERED, article);
 
 		c.attr('content', article);
 
@@ -1193,6 +1191,7 @@ function cdmScrollToArticleId(id, force) {
 
 function setActiveArticleId(id) {
 	_active_article_id = id;
+	PluginHost.run(PluginHost.HOOK_ARTICLE_SET_ACTIVE, _active_article_id);
 }
 
 function getActiveArticleId() {
@@ -1219,6 +1218,8 @@ function unpackVisibleHeadlines() {
 					var cencw = $("CENCW-" + child.id.replace("RROW-", ""));
 
 					if (cencw) {
+						PluginHost.run(PluginHost.HOOK_ARTICLE_RENDERED_CDM, child);
+
 						cencw.innerHTML = htmlspecialchars_decode(cencw.innerHTML);
 						cencw.setAttribute('id', '');
 						Element.show(cencw);
@@ -1394,8 +1395,10 @@ function catchupRelativeToArticle(below, id) {
 	}
 }
 
-function cdmCollapseArticle(event, id) {
+function cdmCollapseArticle(event, id, unmark) {
 	try {
+		if (unmark == undefined) unmark = true;
+
 		var row = $("RROW-" + id);
 		var elem = $("CICD-" + id);
 
@@ -1406,40 +1409,24 @@ function cdmCollapseArticle(event, id) {
 		  	Element.hide(elem);
 			Element.show("CEXC-" + id);
 			Element.hide(collapse);
-			row.removeClassName("active");
 
-			markHeadline(id, false);
+			if (unmark) {
+				row.removeClassName("active");
 
-			if (id == getActiveArticleId()) {
-				setActiveArticleId(0);
+				markHeadline(id, false);
+
+				if (id == getActiveArticleId()) {
+					setActiveArticleId(0);
+				}
 			}
 
 			if (event) Event.stop(event);
+
+			PluginHost.run(PluginHost.HOOK_ARTICLE_COLLAPSED, id);
 		}
 
 	} catch (e) {
 		exception_error("cdmCollapseArticle", e);
-	}
-}
-
-function cdmUnexpandArticle(event, id) {
-	try {
-		var row = $("RROW-" + id);
-		var elem = $("CICD-" + id);
-
-		if (elem && row) {
-			var collapse = $$("div#RROW-" + id +
-				" span[class='collapseBtn']")[0];
-
-		  	Element.hide(elem);
-			Element.show("CEXC-" + id);
-			Element.hide(collapse);
-
-			if (event) Event.stop(event);
-		}
-
-	} catch (e) {
-		exception_error("cdmUnexpandArticle", e);
 	}
 }
 
@@ -1501,6 +1488,8 @@ function cdmExpandArticle(id, noexpand) {
 			toggleUnread(id, 0, true);
 		toggleSelected(id);
 		$("RROW-" + id).addClassName("active");
+
+		PluginHost.run(PluginHost.HOOK_ARTICLE_EXPANDED, id);
 
 	} catch (e) {
 		exception_error("cdmExpandArticle", e);

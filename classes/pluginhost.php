@@ -34,6 +34,8 @@ class PluginHost {
 	const HOOK_HEADLINE_TOOLBAR_BUTTON = 17;
 	const HOOK_HOTKEY_INFO = 18;
 	const HOOK_ARTICLE_LEFT_BUTTON = 19;
+	const HOOK_PREFS_EDIT_FEED = 20;
+	const HOOK_PREFS_SAVE_FEED = 21;
 
 	const KIND_ALL = 1;
 	const KIND_SYSTEM = 2;

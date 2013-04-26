@@ -748,6 +748,9 @@ class Pref_Feeds extends Handler_Protected {
 
 		print "</div>";
 
+		PluginHost::getInstance()->run_hooks(PluginHost::HOOK_PREFS_EDIT_FEED,
+			"hook_prefs_edit_feed", $feed_id);
+
 		$title = htmlspecialchars($title, ENT_QUOTES);
 
 		print "<div class='dlgButtons'>
@@ -998,6 +1001,9 @@ class Pref_Feeds extends Handler_Protected {
 				always_display_enclosures = $always_display_enclosures,
 				mark_unread_on_update = $mark_unread_on_update
 			WHERE id = '$feed_id' AND owner_uid = " . $_SESSION["uid"]);
+
+			PluginHost::getInstance()->run_hooks(PluginHost::HOOK_PREFS_SAVE_FEED,
+				"hook_prefs_save_feed", $feed_id);
 
 		} else {
 			$feed_data = array();

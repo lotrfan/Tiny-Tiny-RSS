@@ -9,24 +9,21 @@
 	define('DISABLE_SESSIONS', true);
 
 	require_once "version.php";
-
-	if (strpos(VERSION, ".99") !== false || getenv('DAEMON_XDEBUG')) {
-		define('DAEMON_EXTENDED_DEBUG', true);
-	}
-
+	require_once "config.php";
 	require_once "autoload.php";
 	require_once "functions.php";
 	require_once "rssfuncs.php";
+
+	// defaults
+	define_default('PURGE_INTERVAL', 3600); // seconds
+	define_default('MAX_CHILD_RUNTIME', 1800); // seconds
+	define_default('MAX_JOBS', 2);
+	define_default('SPAWN_INTERVAL', DAEMON_SLEEP_INTERVAL); // seconds
+
 	require_once "sanity_check.php";
-	require_once "config.php";
 	require_once "db.php";
 	require_once "db-prefs.php";
 
-	// defaults
-	define('PURGE_INTERVAL', 3600); // seconds
-	define('MAX_CHILD_RUNTIME', 600); // seconds
-	define('MAX_JOBS', 2);
-	define('SPAWN_INTERVAL', DAEMON_SLEEP_INTERVAL); // seconds
 
 	if (!function_exists('pcntl_fork')) {
 		die("error: This script requires PHP compiled with PCNTL module.\n");
@@ -173,13 +170,14 @@
 			"Maybe another daemon is already running.\n");
 	}
 
-	init_plugins();
-
 	$schema_version = get_schema_version();
 
 	if ($schema_version != SCHEMA_VERSION) {
 		die("Schema version is wrong, please upgrade the database.\n");
 	}
+
+	// Protip: children close shared database handle when terminating, it's a bad idea to
+	// do database stuff on main process from now on.
 
 	while (true) {
 
@@ -193,17 +191,6 @@
 		}
 
 		if ($last_checkpoint + $spawn_interval < time()) {
-
-			/* Check if schema version changed */
-
-			$test_schema_version = get_schema_version();
-
-			if ($test_schema_version != $schema_version) {
-				echo "Expected schema version: $schema_version, got: $test_schema_version\n";
-				echo "Schema version changed while we were running, bailing out\n";
-				exit(100);
-			}
-
 			check_ctimes();
 			reap_children();
 

@@ -1,7 +1,7 @@
 <?php
-	define('DAEMON_UPDATE_LOGIN_LIMIT', 30);
-	define('DAEMON_FEED_LIMIT', 100);
-	define('DAEMON_SLEEP_INTERVAL', 60);
+	define_default('DAEMON_UPDATE_LOGIN_LIMIT', 30);
+	define_default('DAEMON_FEED_LIMIT', 500);
+	define_default('DAEMON_SLEEP_INTERVAL', 120);
 
 	function update_feedbrowser_cache() {
 
@@ -104,19 +104,16 @@
 
 		// Test if feed is currently being updated by another process.
 		if (DB_TYPE == "pgsql") {
-			$updstart_thresh_qpart = "AND (ttrss_feeds.last_update_started IS NULL OR ttrss_feeds.last_update_started < NOW() - INTERVAL '5 minutes')";
+			$updstart_thresh_qpart = "AND (ttrss_feeds.last_update_started IS NULL OR ttrss_feeds.last_update_started < NOW() - INTERVAL '10 minutes')";
 		} else {
-			$updstart_thresh_qpart = "AND (ttrss_feeds.last_update_started IS NULL OR ttrss_feeds.last_update_started < DATE_SUB(NOW(), INTERVAL 5 MINUTE))";
+			$updstart_thresh_qpart = "AND (ttrss_feeds.last_update_started IS NULL OR ttrss_feeds.last_update_started < DATE_SUB(NOW(), INTERVAL 10 MINUTE))";
 		}
 
 		// Test if there is a limit to number of updated feeds
 		$query_limit = "";
 		if($limit) $query_limit = sprintf("LIMIT %d", $limit);
 
-		$random_qpart = sql_random_function();
-
-		// We search for feed needing update.
-		$result = db_query("SELECT DISTINCT ttrss_feeds.feed_url,$random_qpart
+		$query = "SELECT DISTINCT ttrss_feeds.feed_url, ttrss_feeds.last_updated
 			FROM
 				ttrss_feeds, ttrss_users, ttrss_user_prefs
 			WHERE
@@ -125,7 +122,10 @@
 				AND ttrss_user_prefs.pref_name = 'DEFAULT_UPDATE_INTERVAL'
 				$login_thresh_qpart $update_limit_qpart
 				$updstart_thresh_qpart
-			ORDER BY $random_qpart $query_limit");
+				ORDER BY last_updated $query_limit";
+
+		// We search for feed needing update.
+		$result = db_query($query);
 
 		if($debug) _debug(sprintf("Scheduled %d feeds to update...", db_num_rows($result)));
 
@@ -149,10 +149,6 @@
 			db_query(sprintf("UPDATE ttrss_feeds SET last_update_started = NOW()
 				WHERE feed_url IN (%s)", implode(',', $feeds_quoted)));
 		}
-
-		expire_cached_files($debug);
-		expire_lock_files($debug);
-		expire_error_log($debug);
 
 		$nf = 0;
 
@@ -206,7 +202,9 @@
 		$result = db_query("SELECT id,update_interval,auth_login,
 			feed_url,auth_pass,cache_images,last_updated,
 			mark_unread_on_update, owner_uid,
-			pubsub_state, auth_pass_encrypted
+			pubsub_state, auth_pass_encrypted,
+			(SELECT max(date_entered) FROM
+				ttrss_entries, ttrss_user_entries where ref_id = id AND feed_id = '$feed') AS last_article_timestamp
 			FROM ttrss_feeds WHERE id = '$feed'");
 
 		if (db_num_rows($result) == 0) {
@@ -215,6 +213,7 @@
 		}
 
 		$last_updated = db_fetch_result($result, 0, "last_updated");
+		$last_article_timestamp = @strtotime(db_fetch_result($result, 0, "last_article_timestamp"));
 		$owner_uid = db_fetch_result($result, 0, "owner_uid");
 		$mark_unread_on_update = sql_bool_to_bool(db_fetch_result($result,
 			0, "mark_unread_on_update"));
@@ -245,8 +244,7 @@
 		$cache_filename = CACHE_DIR . "/simplepie/" . sha1($fetch_url) . ".feed";
 
 		// Ignore cache if new feed or manual update.
-		$cache_age = ($no_cache || is_null($last_updated) || $last_updated == '1970-01-01 00:00:00') ?
-			30 : get_feed_update_interval($feed) * 60;
+		$cache_age = ($no_cache || is_null($last_updated) || strpos($last_updated, '1970-01-01') === 0) ? 30 : get_feed_update_interval($feed) * 60;
 
 		_debug("cache filename: $cache_filename exists: " . file_exists($cache_filename), $debug_enabled);
 		_debug("cache age: $cache_age; no cache: $no_cache", $debug_enabled);
@@ -256,7 +254,6 @@
 		$rss = false;
 		$rss_hash = false;
 		$cache_timestamp = file_exists($cache_filename) ? filemtime($cache_filename) : 0;
-		$last_updated_timestamp = strtotime($last_updated);
 
 		$force_refetch = isset($_REQUEST["force_refetch"]);
 
@@ -267,7 +264,7 @@
 
 				_debug("using local cache.", $debug_enabled);
 
-				if ($cache_timestamp > $last_updated_timestamp) {
+				if ($cache_timestamp > $last_article_timestamp) {
 					@$rss_data = file_get_contents($cache_filename);
 
 					if ($rss_data) {
@@ -278,17 +275,20 @@
 					_debug("local cache valid and older than last_updated, nothing to do.", $debug_enabled);
 					return;
 				}
+		} else {
+			_debug("local cache will not be used for this feed", $debug_enabled);
 		}
 
 		if (!$rss) {
 
 			if (!$feed_data) {
-				_debug("fetching [$fetch_url] (ts: $cache_timestamp/$last_updated_timestamp)", $debug_enabled);
+				_debug("fetching [$fetch_url]...", $debug_enabled);
+				_debug("If-Modified-Since: ".gmdate('D, d M Y H:i:s \G\M\T', $last_article_timestamp), $debug_enabled);
 
 				$feed_data = fetch_file_contents($fetch_url, false,
 					$auth_login, $auth_pass, false,
 					$no_cache ? FEED_FETCH_NO_CACHE_TIMEOUT : FEED_FETCH_TIMEOUT,
-					$force_refetch ? 0 : max($last_updated_timestamp, $cache_timestamp));
+					$force_refetch ? 0 : $last_article_timestamp);
 
 				global $fetch_curl_used;
 
@@ -399,7 +399,7 @@
 				$favicon_interval_qpart = "favicon_last_checked < DATE_SUB(NOW(), INTERVAL 12 HOUR)";
 			}
 
-			$result = db_query("SELECT title,site_url,owner_uid,
+			$result = db_query("SELECT title,site_url,owner_uid,favicon_avg_color,
 				(favicon_last_checked IS NULL OR $favicon_interval_qpart) AS
 						favicon_needs_check
 				FROM ttrss_feeds WHERE id = '$feed'");
@@ -408,24 +408,40 @@
 			$orig_site_url = db_fetch_result($result, 0, "site_url");
 			$favicon_needs_check = sql_bool_to_bool(db_fetch_result($result, 0,
 				"favicon_needs_check"));
+			$favicon_avg_color = db_fetch_result($result, 0, "favicon_avg_color");
 
 			$owner_uid = db_fetch_result($result, 0, "owner_uid");
 
 			$site_url = db_escape_string(mb_substr(rewrite_relative_url($fetch_url, $rss->get_link()), 0, 245));
 
 			if ($favicon_needs_check || $force_refetch) {
+
+				/* terrible hack: if we crash on floicon shit here, we won't check
+				 * the icon avgcolor again (unless the icon got updated) */
+
+				$favicon_file = ICONS_DIR . "/$feed.ico";
+				$favicon_modified = @filemtime($favicon_file);
+
 				_debug("checking favicon...", $debug_enabled);
 
 				check_feed_favicon($site_url, $feed, $link);
-				$favicon_file = ICONS_DIR . "/$feed.ico";
+				$favicon_modified_new = @filemtime($favicon_file);
 
-				if (file_exists($favicon_file) && function_exists("imagecreatefromstring")) {
+				if ($favicon_modified_new > $favicon_modified)
+					$favicon_avg_color = '';
+
+				if (file_exists($favicon_file) && function_exists("imagecreatefromstring") && $favicon_avg_color == '') {
 						require_once "colors.php";
+
+						db_query("UPDATE ttrss_feeds SET favicon_avg_color = 'fail' WHERE
+							id = '$feed'");
 
 						$favicon_color = db_escape_string(
 							calculate_avg_color($favicon_file));
 
 						$favicon_colorstring = ",favicon_avg_color = '".$favicon_color."'";
+				} else if ($favicon_avg_color == 'fail') {
+					_debug("floicon failed on this file, not trying to recalculate avg color", $debug_enabled);
 				}
 
 				db_query("UPDATE ttrss_feeds SET favicon_last_checked = NOW()
@@ -1150,7 +1166,7 @@
 	}
 
 	function expire_lock_files($debug) {
-		if ($debug) _debug("Removing old lock files...");
+		//if ($debug) _debug("Removing old lock files...");
 
 		$num_deleted = 0;
 
@@ -1159,7 +1175,7 @@
 
 			if ($files) {
 				foreach ($files as $file) {
-					if (!file_is_locked($file) && time() - filemtime($file) > 86400*2) {
+					if (!file_is_locked(basename($file)) && time() - filemtime($file) > 86400*2) {
 						unlink($file);
 						++$num_deleted;
 					}
@@ -1167,14 +1183,14 @@
 			}
 		}
 
-		if ($debug) _debug("Removed $num_deleted files.");
+		if ($debug) _debug("Removed $num_deleted old lock files.");
 	}
 
 	function expire_cached_files($debug) {
 		foreach (array("simplepie", "images", "export", "upload") as $dir) {
 			$cache_dir = CACHE_DIR . "/$dir";
 
-			if ($debug) _debug("Expiring $cache_dir");
+//			if ($debug) _debug("Expiring $cache_dir");
 
 			$num_deleted = 0;
 
@@ -1192,7 +1208,7 @@
 				}
 			}
 
-			if ($debug) _debug("Removed $num_deleted files.");
+			if ($debug) _debug("$cache_dir: removed $num_deleted files.");
 		}
 	}
 
@@ -1355,4 +1371,17 @@
 		return $error;
 	}
 
+	function housekeeping_common($debug) {
+		expire_cached_files($debug);
+		expire_lock_files($debug);
+		expire_error_log($debug);
+
+		$count = update_feedbrowser_cache();
+		_debug("Feedbrowser updated, $count feeds processed.");
+
+		purge_orphans( true);
+		$rc = cleanup_tags( 14, 50000);
+
+		_debug("Cleaned $rc cached tags.");
+	}
 ?>

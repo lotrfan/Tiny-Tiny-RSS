@@ -1,6 +1,6 @@
 <?php
 	define('EXPECTED_CONFIG_VERSION', 26);
-	define('SCHEMA_VERSION', 118);
+	define('SCHEMA_VERSION', 119);
 
 	define('LABEL_BASE_INDEX', -1024);
 	define('PLUGIN_FEED_BASE_INDEX', -128);
@@ -125,8 +125,6 @@
 
 	require_once 'lib/pubsubhubbub/publisher.php';
 
-	$tz_offset = -1;
-	$utc_tz = new DateTimeZone('UTC');
 	$schema_version = false;
 
 	/**
@@ -320,7 +318,7 @@
 				$ch = curl_init($url);
 			}
 
-			if ($timestamp) {
+			if ($timestamp && !$post_query) {
 				curl_setopt($ch, CURLOPT_HTTPHEADER,
 					array("If-Modified-Since: ".gmdate('D, d M Y H:i:s \G\M\T', $timestamp)));
 			}
@@ -407,7 +405,7 @@
 			$data = @file_get_contents($url, false, $context);
 
 			$fetch_last_content_type = false;  // reset if no type was sent from server
-			if (is_array($http_response_header)) {
+			if (isset($http_response_header) && is_array($http_response_header)) {
 				foreach ($http_response_header as $h) {
 					if (substr(strtolower($h), 0, 13) == 'content-type:') {
 						$fetch_last_content_type = substr($h, 14);
@@ -659,7 +657,7 @@
 				@session_start();
 
 				$_SESSION["uid"] = $user_id;
-				$_SESSION["version"] = VERSION;
+				$_SESSION["version"] = VERSION_STATIC;
 
 				$result = db_query("SELECT login,access_level,pwd_hash FROM ttrss_users
 					WHERE id = '$user_id'");
@@ -853,22 +851,28 @@
 		if (!$timestamp) $timestamp = '1970-01-01 0:00';
 
 		global $utc_tz;
-		global $tz_offset;
+		global $user_tz;
+
+		if (!$utc_tz) $utc_tz = new DateTimeZone('UTC');
+
+		$timestamp = substr($timestamp, 0, 19);
 
 		# We store date in UTC internally
 		$dt = new DateTime($timestamp, $utc_tz);
 
-		if ($tz_offset == -1) {
+		$user_tz_string = get_pref('USER_TIMEZONE', $owner_uid);
 
-			$user_tz_string = get_pref('USER_TIMEZONE', $owner_uid);
+		if ($user_tz_string != 'Automatic') {
 
 			try {
-				$user_tz = new DateTimeZone($user_tz_string);
+				if (!$user_tz) $user_tz = new DateTimeZone($user_tz_string);
 			} catch (Exception $e) {
 				$user_tz = $utc_tz;
 			}
 
 			$tz_offset = $user_tz->getOffset($dt);
+		} else {
+			$tz_offset = (int) -$_SESSION["clientTzOffset"];
 		}
 
 		$user_timestamp = $dt->format('U') + $tz_offset;
@@ -922,7 +926,7 @@
 	function get_schema_version($nocache = false) {
 		global $schema_version;
 
-		if (!$schema_version) {
+		if (!$schema_version && !$nocache) {
 			$result = db_query("SELECT schema_version FROM ttrss_version");
 			$version = db_fetch_result($result, 0, "schema_version");
 			$schema_version = $version;
@@ -2535,12 +2539,13 @@
 					$feed_title = getCategoryTitle($feed);
 				} else {
 					if (is_numeric($feed) && $feed > 0) {
-						$result = db_query("SELECT title,site_url,last_error
+						$result = db_query("SELECT title,site_url,last_error,last_updated
 							FROM ttrss_feeds WHERE id = '$feed' AND owner_uid = $owner_uid");
 
 						$feed_title = db_fetch_result($result, 0, "title");
 						$feed_site_url = db_fetch_result($result, 0, "site_url");
 						$last_error = db_fetch_result($result, 0, "last_error");
+						$last_updated = db_fetch_result($result, 0, "last_updated");
 					} else {
 						$feed_title = getFeedTitle($feed);
 					}
@@ -2688,7 +2693,7 @@
 				$result = db_query($select_qpart . $from_qpart . $where_qpart);
 			}
 
-			return array($result, $feed_title, $feed_site_url, $last_error);
+			return array($result, $feed_title, $feed_site_url, $last_error, $last_updated);
 
 	}
 
@@ -2798,7 +2803,8 @@
 	}
 
 	function strip_harmful_tags($doc, $allowed_elements, $disallowed_attributes) {
-		$entries = $doc->getElementsByTagName("*");
+		$xpath = new DOMXPath($doc);
+		$entries = $xpath->query('//*');
 
 		foreach ($entries as $entry) {
 			if (!in_array($entry->nodeName, $allowed_elements)) {
