@@ -52,9 +52,10 @@ class Pref_Prefs extends Handler_Protected {
 			"STRIP_IMAGES" => array(__("Do not embed images in articles"), ""),
 			"STRIP_UNSAFE_TAGS" => array(__("Strip unsafe tags from articles"), __("Strip all but most common HTML tags when reading articles.")),
 			"USER_STYLESHEET" => array(__("Customize stylesheet"), __("Customize CSS stylesheet to your liking")),
-			"USER_TIMEZONE" => array(__("User timezone"), ""),
+			"USER_TIMEZONE" => array(__("Time zone"), ""),
 			"VFEED_GROUP_BY_FEED" => array(__("Group headlines in virtual feeds"), __("Special feeds, labels, and categories are grouped by originating feeds")),
-			"USER_CSS_THEME" => array(__("Select theme"), __("Select one of the available CSS themes"))
+			"USER_LANGUAGE" => array(__("Language")),
+			"USER_CSS_THEME" => array(__("Theme"), __("Select one of the available CSS themes"))
 		);
 	}
 
@@ -111,18 +112,13 @@ class Pref_Prefs extends Handler_Protected {
 				}
 			}
 
-			if ($pref_name == "language") {
+			if ($pref_name == "USER_LANGUAGE") {
 				if ($_SESSION["language"] != $value) {
-					setcookie("ttrss_lang", $value,
-						time() + SESSION_COOKIE_LIFETIME);
-					$_SESSION["language"] = $value;
-
 					$need_reload = true;
 				}
-			} else {
-				set_pref($pref_name, $value);
 			}
 
+			set_pref($pref_name, $value);
 		}
 
 		if ($need_reload) {
@@ -368,7 +364,7 @@ class Pref_Prefs extends Handler_Protected {
 
 				print "</form>";
 
-				} else {
+				} else if (function_exists("imagecreatefromstring")) {
 
 					print "<p>".__("You will need a compatible Authenticator to use this. Changing your password would automatically disable OTP.") . "</p>";
 
@@ -426,6 +422,10 @@ class Pref_Prefs extends Handler_Protected {
 						__("Enable OTP")."</button>";
 
 					print "</form>";
+
+				} else {
+
+					print_notice(__("PHP GD functions are required for OTP support."));
 
 				}
 
@@ -539,22 +539,6 @@ class Pref_Prefs extends Handler_Protected {
 				print "<tr><td colspan=\"3\"><h3>".$section_name."</h3></td></tr>";
 
 				$lnum = 0;
-
-				if ($active_section == 2) {
-					print "<tr>";
-
-					print "<td width=\"40%\" class=\"prefName\">";
-					print "<label>";
-					print __("Language:");
-					print "</label>";
-
-					print "<td>";
-					print_select_hash("language", $_COOKIE["ttrss_lang"], get_translations(),
-						"style='width : 220px; margin : 0px' dojoType='dijit.form.Select'");
-					print "</td>";
-					print "</tr>";
-				}
-
 			}
 
 			print "<tr>";
@@ -570,7 +554,11 @@ class Pref_Prefs extends Handler_Protected {
 
 			print "<td class=\"prefValue\">";
 
-			if ($pref_name == "USER_TIMEZONE") {
+			if ($pref_name == "USER_LANGUAGE") {
+				print_select_hash($pref_name, $value, get_translations(),
+					"style='width : 220px; margin : 0px' dojoType='dijit.form.Select'");
+
+			} else if ($pref_name == "USER_TIMEZONE") {
 
 				$timezones = explode("\n", file_get_contents("lib/timezones.txt"));
 

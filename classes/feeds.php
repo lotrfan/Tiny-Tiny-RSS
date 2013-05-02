@@ -362,7 +362,7 @@ class Feeds extends Handler_Protected {
 
 				if (get_pref('SHOW_CONTENT_PREVIEW')) {
 					$content_preview = truncate_string(strip_tags($line["content_preview"]),
-						100);
+						250);
 				}
 
 				$score = $line["score"];
@@ -514,8 +514,10 @@ class Feeds extends Handler_Protected {
 
 				} else {
 
-					$line["tags"] = get_article_tags($id, $_SESSION["uid"], $line["tag_cache"]);
-					unset($line["tag_cache"]);
+					if ($line["tag_cache"])
+						$tags = explode(",", $line["tag_cache"]);
+					else
+						$tags = false;
 
 					$line["content"] = sanitize($line["content_preview"],
 							sql_bool_to_bool($line['hide_images']), false, $entry_site_url);
@@ -627,7 +629,6 @@ class Feeds extends Handler_Protected {
 					}
 					$reply['content'] .= "</div>";
 
-
 					$reply['content'] .= "<div class=\"cdmContentInner\">";
 
 			if ($line["orig_feed_id"]) {
@@ -682,12 +683,12 @@ class Feeds extends Handler_Protected {
 						$reply['content'] .= $p->hook_article_left_button($line);
 					}
 
-					$tags_str = format_tags_string($line["tags"], $id);
+					$tags_str = format_tags_string($tags, $id);
 
 					$reply['content'] .= "<img src='images/tag.png' alt='Tags' title='Tags'>
 						<span id=\"ATSTR-$id\">$tags_str</span>
 						<a title=\"".__('Edit tags for this article')."\"
-						href=\"#\" onclick=\"editArticleTags($id, $feed_id, true)\">(+)</a>";
+						href=\"#\" onclick=\"editArticleTags($id)\">(+)</a>";
 
 					$num_comments = $line["num_comments"];
 					$entry_comments = "";

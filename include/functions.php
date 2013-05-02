@@ -1,9 +1,11 @@
 <?php
 	define('EXPECTED_CONFIG_VERSION', 26);
-	define('SCHEMA_VERSION', 119);
+	define('SCHEMA_VERSION', 120);
 
 	define('LABEL_BASE_INDEX', -1024);
 	define('PLUGIN_FEED_BASE_INDEX', -128);
+
+	define('COOKIE_LIFETIME_LONG', 86400*365);
 
 	$fetch_last_error = false;
 	$fetch_last_error_code = false;
@@ -95,8 +97,12 @@
 			$lang = _TRANSLATION_OVERRIDE_DEFAULT;
 		}
 
-		if ($_SESSION["language"] && $_SESSION["language"] != "auto") {
-			$lang = $_SESSION["language"];
+		if ($_SESSION["uid"] && get_schema_version() >= 120) {
+			$pref_lang = get_pref("USER_LANGUAGE", $_SESSION["uid"]);
+
+			if ($pref_lang) {
+				$lang = $pref_lang;
+			}
 		}
 
 		if ($lang) {
@@ -112,8 +118,6 @@
 			_bind_textdomain_codeset("messages", "UTF-8");
 		}
 	}
-
-	startup_gettext();
 
 	require_once 'db-prefs.php';
 	require_once 'version.php';
@@ -793,12 +797,8 @@
 				$_SESSION["last_login_update"] = time();
 			}
 
-			if ($_SESSION["uid"] && $_SESSION["language"] && SESSION_COOKIE_LIFETIME > 0) {
-				setcookie("ttrss_lang", $_SESSION["language"],
-					time() + SESSION_COOKIE_LIFETIME);
-			}
-
 			if ($_SESSION["uid"]) {
+				startup_gettext();
 				load_user_plugins($_SESSION["uid"]);
 
 				/* cleanup ccache */
@@ -2902,7 +2902,6 @@
 			ttrss_tags WHERE post_int_id = (SELECT int_id FROM ttrss_user_entries WHERE
 			ref_id = '$a_id' AND owner_uid = '$owner_uid' LIMIT 1) ORDER BY tag_name";
 
-		$obj_id = md5("TAGS:$owner_uid:$id");
 		$tags = array();
 
 		/* check cache first */
@@ -3249,7 +3248,7 @@
 
 	function print_checkpoint($n, $s) {
 		$ts = microtime(true);
-		echo sprintf("<!-- CP[$n] %.4f seconds -->", $ts - $s);
+		echo sprintf("<!-- CP[$n] %.4f seconds -->\n", $ts - $s);
 		return $ts;
 	}
 
@@ -3392,52 +3391,27 @@
 	}
 
 	function format_tags_string($tags, $id) {
+		if (!is_array($tags) || count($tags) == 0) {
+			return __("no tags");
+		} else {
+			$maxtags = min(5, count($tags));
 
-		$tags_str = "";
-		$tags_nolinks_str = "";
-
-		$num_tags = 0;
-
-		$tag_limit = 6;
-
-		$formatted_tags = array();
-
-		foreach ($tags as $tag) {
-			$num_tags++;
-			$tag_escaped = str_replace("'", "\\'", $tag);
-
-			if (mb_strlen($tag) > 30) {
-				$tag = truncate_string($tag, 30);
+			for ($i = 0; $i < $maxtags; $i++) {
+				$tags_str .= "<a href=\"#\" onclick=\"viewfeed('".$tags[$i]."'\")>" . $tags[$i] . "</a>, ";
 			}
 
-			$tag_str = "<a href=\"javascript:viewfeed('$tag_escaped')\">$tag</a>";
+			$tags_str = mb_substr($tags_str, 0, mb_strlen($tags_str)-2);
 
-			array_push($formatted_tags, $tag_str);
+			if (count($tags) > $maxtags)
+				$tags_str .= ", &hellip;";
 
-			$tmp_tags_str = implode(", ", $formatted_tags);
-
-			if ($num_tags == $tag_limit || mb_strlen($tmp_tags_str) > 150) {
-				break;
-			}
+			return $tags_str;
 		}
-
-		$tags_str = implode(", ", $formatted_tags);
-
-		if ($num_tags < count($tags)) {
-			$tags_str .= ", &hellip;";
-		}
-
-		if ($num_tags == 0) {
-			$tags_str = __("no tags");
-		}
-
-		return $tags_str;
-
 	}
 
 	function format_article_labels($labels, $id) {
 
-		if (is_array($labels)) return '';
+		if (!is_array($labels)) return '';
 
 		$labels_str = "";
 

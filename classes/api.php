@@ -309,7 +309,7 @@ class API extends Handler {
 		$query = "SELECT id,title,link,content,cached_content,feed_id,comments,int_id,
 			marked,unread,published,score,
 			".SUBSTRING_FOR_DATE."(updated,1,16) as updated,
-			author
+			author,(SELECT title FROM ttrss_feeds WHERE id = feed_id) AS feed_title
 			FROM ttrss_entries,ttrss_user_entries
 			WHERE	id IN ($article_id) AND ref_id = id AND owner_uid = " .
 				$_SESSION["uid"] ;
@@ -338,7 +338,8 @@ class API extends Handler {
 					"content" => $line["cached_content"] != "" ? $line["cached_content"] : $line["content"],
 					"feed_id" => $line["feed_id"],
 					"attachments" => $attachments,
-					"score" => (int)$line["score"]
+					"score" => (int)$line["score"],
+					"feed_title" => $line["feed_title"]
 				);
 
 				foreach (PluginHost::getInstance()->get_hooks(PluginHost::HOOK_RENDER_ARTICLE_API) as $p) {
@@ -684,7 +685,8 @@ class API extends Handler {
 
 				$headline_row["labels"] = $labels;
 
-				$headline_row["feed_title"] = $line["feed_title"];
+				$headline_row["feed_title"] = $line["feed_title"] ? $line["feed_title"] :
+					$feed_title;
 
 				$headline_row["comments_count"] = (int)$line["num_comments"];
 				$headline_row["comments_link"] = $line["comments"];

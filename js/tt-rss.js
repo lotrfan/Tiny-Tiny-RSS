@@ -249,7 +249,7 @@ function init() {
 		if (!genericSanityCheck())
 			return false;
 
-		loading_set_progress(20);
+		loading_set_progress(30);
 
 		var a = document.createElement('audio');
 
@@ -332,7 +332,7 @@ function init() {
 		hotkey_actions["edit_tags"] = function() {
 				var id = getActiveArticleId();
 				if (id) {
-					editArticleTags(id, getActiveFeedId(), isCdmMode());
+					editArticleTags(id);
 				};
 			}
 		hotkey_actions["dismiss_selected"] = function() {
@@ -573,7 +573,7 @@ function init_second_stage() {
 			setActiveFeedId(hash_feed_id, hash_feed_is_cat);
 		}
 
-		loading_set_progress(30);
+		loading_set_progress(50);
 
 		// can't use cache_clear() here because viewfeed might not have initialized yet
 		if ('sessionStorage' in window && window['sessionStorage'] !== null)
@@ -753,6 +753,8 @@ function parse_runtime_info(data) {
 		init_params[k] = v;
 		notify('');
 	}
+
+	PluginHost.run(PluginHost.HOOK_RUNTIME_INFO_LOADED, data);
 }
 
 function collapse_feedlist() {
@@ -992,7 +994,7 @@ function handle_rpc_json(transport, scheduled_call) {
 			if (counters)
 				parse_counters(counters, scheduled_call);
 
-			var runtime_info = reply['runtime-info'];;
+			var runtime_info = reply['runtime-info'];
 
 			if (runtime_info)
 				parse_runtime_info(runtime_info);
