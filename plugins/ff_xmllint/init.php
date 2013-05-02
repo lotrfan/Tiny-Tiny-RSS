@@ -8,12 +8,16 @@ class Ff_XmlLint extends Plugin {
 			false);
 	}
 
+	function api_version() {
+		return 2;
+	}
+
 	function init($host) {
 		$host->add_hook($host::HOOK_FEED_FETCHED, $this);
 	}
 	
 	function hook_feed_fetched($feed_data) {
-		$descriptorspec = array(
+	    $descriptorspec = array(
 			0 => array("pipe", "r"),
 			1 => array("pipe", "w"),
 			2 => array("file", "/dev/null", "a")
