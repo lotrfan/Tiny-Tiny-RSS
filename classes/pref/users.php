@@ -69,8 +69,6 @@ class Pref_Users extends Handler_Protected {
 
 			print "<ul class=\"userFeedList\">";
 
-			$row_class = "odd";
-
 			while ($line = $this->dbh->fetch_assoc($result)) {
 
 				$icon_file = ICONS_URL."/".$line["id"].".ico";
@@ -81,9 +79,7 @@ class Pref_Users extends Handler_Protected {
 					$feed_icon = "<img class=\"tinyFeedIcon\" src=\"images/blank_icon.gif\">";
 				}
 
-				print "<li class=\"$row_class\">$feed_icon&nbsp;<a href=\"".$line["site_url"]."\">".$line["title"]."</a></li>";
-
-				$row_class = $row_class == "even" ? "odd" : "even";
+				print "<li>$feed_icon&nbsp;<a href=\"".$line["site_url"]."\">".$line["title"]."</a></li>";
 
 			}
 
@@ -252,9 +248,9 @@ class Pref_Users extends Handler_Protected {
 			}
 		}
 
-		static function resetUserPassword($link, $uid, $show_password) {
+		static function resetUserPassword($uid, $show_password) {
 
-			$result = db_query($link, "SELECT login,email
+			$result = db_query("SELECT login,email
 				FROM ttrss_users WHERE id = '$uid'");
 
 			$login = db_fetch_result($result, 0, "login");
@@ -266,7 +262,7 @@ class Pref_Users extends Handler_Protected {
 
 			$pwd_hash = encrypt_password($tmp_user_pwd, $new_salt, true);
 
-			db_query($link, "UPDATE ttrss_users SET pwd_hash = '$pwd_hash', salt = '$new_salt'
+			db_query("UPDATE ttrss_users SET pwd_hash = '$pwd_hash', salt = '$new_salt'
 				WHERE id = '$uid'");
 
 			if ($show_password) {
@@ -407,8 +403,6 @@ class Pref_Users extends Handler_Protected {
 			$lnum = 0;
 
 			while ($line = $this->dbh->fetch_assoc($result)) {
-
-				$class = ($lnum % 2) ? "even" : "odd";
 
 				$uid = $line["id"];
 

@@ -184,9 +184,50 @@ dojo.declare("fox.FeedTree", dijit.Tree, {
 			tnode._menu = menu;
 		}
 
+		ctr = dojo.doc.createElement('span');
+		ctr.className = 'counterNode';
+		ctr.innerHTML = args.item.unread;
+
+		//args.item.unread > 0 ? ctr.addClassName("unread") : ctr.removeClassName("unread");
+
+		args.item.unread > 0 ? Element.show(ctr) : Element.hide(ctr);
+
+		dojo.place(ctr, tnode.labelNode, 'after');
+		tnode.counterNode = ctr;
 
 		//tnode.labelNode.innerHTML = args.label;
 		return tnode;
+	},
+	postCreate: function() {
+		this.connect(this.model, "onChange", "updateCounter");
+
+		this.inherited(arguments);
+	},
+	updateCounter: function (item) {
+		var tree = this;
+
+		//console.log("updateCounter: " + item.id[0] + " " + item.unread + " " + tree);
+
+		var node = tree._itemNodesMap[item.id];
+
+		if (node) {
+			node = node[0];
+
+			if (node.counterNode) {
+				ctr = node.counterNode;
+				ctr.innerHTML = item.unread;
+				item.unread > 0 ? Effect.Appear(ctr, {duration : 0.3,
+					queue: { position: 'end', scope: 'CAPPEAR-' + item.id, limit: 1 }}) :
+						Element.hide(ctr);
+			}
+		}
+
+	},
+	getTooltip: function (item) {
+		if (item.updated)
+			return item.updated;
+		else
+			return "";
 	},
 	getIconClass: function (item, opened) {
 		return (!item || this.model.mayHaveChildren(item)) ? (opened ? "dijitFolderOpened" : "dijitFolderClosed") : "feedIcon";
@@ -195,8 +236,12 @@ dojo.declare("fox.FeedTree", dijit.Tree, {
 		return (item.unread == 0) ? "dijitTreeLabel" : "dijitTreeLabel Unread";
 	},
 	getRowClass: function (item, opened) {
-		return (!item.error || item.error == '') ? "dijitTreeRow" :
+		var rc = (!item.error || item.error == '') ? "dijitTreeRow" :
 			"dijitTreeRow Error";
+
+		if (item.unread > 0) rc += " Unread";
+
+		return rc;
 	},
 	getLabel: function(item) {
 		var name = String(item.name);
@@ -208,15 +253,15 @@ dojo.declare("fox.FeedTree", dijit.Tree, {
 		name = name.replace(/&lt;/g, "<");
 		name = name.replace(/&gt;/g, ">");
 
-		var label;
+		/* var label;
 
 		if (item.unread > 0) {
 			label = name + " (" + item.unread + ")";
 		} else {
 			label = name;
-		}
+		} */
 
-		return label;
+		return name;
 	},
 	expandParentNodes: function(feed, is_cat, list) {
 		try {
@@ -307,11 +352,9 @@ dojo.declare("fox.FeedTree", dijit.Tree, {
 
 		if (treeNode) {
 			treeNode = treeNode[0];
-			if (is_cat) {
-				if (treeNode.loadingNode) {
-					treeNode.loadingNode.src = src;
-					return true;
-				}
+			if (treeNode.loadingNode) {
+				treeNode.loadingNode.src = src;
+				return true;
 			} else {
 				treeNode.expandoNode.src = src;
 				return true;

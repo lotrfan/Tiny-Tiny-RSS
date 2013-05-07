@@ -36,8 +36,7 @@ class Pref_Feeds extends Handler_Protected {
 
 		// first one is set by API
 		$show_empty_cats = $_REQUEST['force_show_empty'] ||
-			($_REQUEST['mode'] != 2 && !$search &&
-				get_pref('_PREFS_SHOW_EMPTY_CATS'));
+			($_REQUEST['mode'] != 2 && !$search);
 
 		$items = array();
 
@@ -185,8 +184,7 @@ class Pref_Feeds extends Handler_Protected {
 
 		if ($enable_cats) {
 			$show_empty_cats = $_REQUEST['force_show_empty'] ||
-				($_REQUEST['mode'] != 2 && !$search &&
-				get_pref('_PREFS_SHOW_EMPTY_CATS'));
+				($_REQUEST['mode'] != 2 && !$search);
 
 			$result = $this->dbh->query("SELECT id, title FROM ttrss_feed_categories
 				WHERE owner_uid = " . $_SESSION["uid"] . " AND parent_cat IS NULL ORDER BY order_id, title");
@@ -303,11 +301,6 @@ class Pref_Feeds extends Handler_Protected {
 		$this->dbh->query("UPDATE ttrss_feeds
 				SET order_id = 0 WHERE owner_uid = " . $_SESSION["uid"]);
 		return;
-	}
-
-	function togglehiddenfeedcats() {
-		set_pref('_PREFS_SHOW_EMPTY_CATS',
-			(get_pref('_PREFS_SHOW_EMPTY_CATS') ? 'false' : 'true'));
 	}
 
 	private function process_category_order(&$data_map, $item_id, $parent_id = false, $nest_level = 0) {
@@ -794,7 +787,7 @@ class Pref_Feeds extends Handler_Protected {
 
 		print "<input dojoType=\"dijit.form.ValidationTextBox\"
 			disabled=\"1\" style=\"font-size : 16px; width : 20em;\" required=\"1\"
-			name=\"title\" value=\"$title\">";
+			name=\"title\" value=\"\">";
 
 		$this->batch_edit_cbox("title");
 
@@ -805,7 +798,7 @@ class Pref_Feeds extends Handler_Protected {
 		print __('URL:') . " ";
 		print "<input dojoType=\"dijit.form.ValidationTextBox\" disabled=\"1\"
 			required=\"1\" regExp='^(http|https)://.*' style=\"width : 20em\"
-			name=\"feed_url\" value=\"$feed_url\">";
+			name=\"feed_url\" value=\"\">";
 
 		$this->batch_edit_cbox("feed_url");
 
@@ -817,7 +810,7 @@ class Pref_Feeds extends Handler_Protected {
 
 			print __('Place in category:') . " ";
 
-			print_feed_cat_select("cat_id", $cat_id,
+			print_feed_cat_select("cat_id", false,
 				'disabled="1" dojoType="dijit.form.Select"');
 
 			$this->batch_edit_cbox("cat_id");
@@ -831,7 +824,7 @@ class Pref_Feeds extends Handler_Protected {
 
 		/* Update Interval */
 
-		print_select_hash("update_interval", $update_interval, $update_intervals,
+		print_select_hash("update_interval", "", $update_intervals,
 			'disabled="1" dojoType="dijit.form.Select"');
 
 		$this->batch_edit_cbox("update_interval");
@@ -844,7 +837,7 @@ class Pref_Feeds extends Handler_Protected {
 
 			print __('Article purging:') . " ";
 
-			print_select_hash("purge_interval", $purge_interval, $purge_intervals,
+			print_select_hash("purge_interval", "", $purge_intervals,
 				'disabled="1" dojoType="dijit.form.Select"');
 
 			$this->batch_edit_cbox("purge_interval");
@@ -856,13 +849,13 @@ class Pref_Feeds extends Handler_Protected {
 
 		print "<input dojoType=\"dijit.form.TextBox\"
 			placeHolder=\"".__("Login")."\" disabled=\"1\"
-			name=\"auth_login\" value=\"$auth_login\">";
+			name=\"auth_login\" value=\"\">";
 
 		$this->batch_edit_cbox("auth_login");
 
 		print "<br/><input dojoType=\"dijit.form.TextBox\" type=\"password\" name=\"auth_pass\"
 			placeHolder=\"".__("Password")."\" disabled=\"1\"
-			value=\"$auth_pass\">";
+			value=\"\">";
 
 		$this->batch_edit_cbox("auth_pass");
 
@@ -1351,9 +1344,6 @@ class Pref_Feeds extends Handler_Protected {
 		print $error_button;
 		print $inactive_button;
 
-		print "<button onclick=\"toggleHiddenFeedCats()\"
-			dojoType=\"dijit.form.Button\">".__('(Un)hide empty categories')."</button>";
-
 		if (defined('_ENABLE_FEED_DEBUGGING')) {
 
 			print "<select id=\"feedActionChooser\" onchange=\"feedActionChange()\">
@@ -1594,7 +1584,6 @@ class Pref_Feeds extends Handler_Protected {
 
 		while ($line = $this->dbh->fetch_assoc($result)) {
 
-			$class = ($lnum % 2) ? "even" : "odd";
 			$feed_id = $line["id"];
 			$this_row_id = "id=\"FUPDD-$feed_id\"";
 
@@ -1664,7 +1653,6 @@ class Pref_Feeds extends Handler_Protected {
 
 		while ($line = $this->dbh->fetch_assoc($result)) {
 
-			$class = ($lnum % 2) ? "even" : "odd";
 			$feed_id = $line["id"];
 			$this_row_id = "id=\"FERDD-$feed_id\"";
 
