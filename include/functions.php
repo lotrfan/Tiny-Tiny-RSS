@@ -1661,7 +1661,7 @@
 			$feed_id = db_fetch_result($result, 0, "id");
 
 			if ($feed_id) {
-				update_rss_feed($feed_id, false, false, false, $contents);
+				update_rss_feed($feed_id, true);
 			}
 
 			return array("code" => 1);
@@ -2845,8 +2845,7 @@
 			if ($version_data) {
 				$version_data = json_decode($version_data, true);
 				if ($version_data && $version_data['version']) {
-
-					if (version_compare(VERSION, $version_data['version']) == -1) {
+					if (version_compare(VERSION_STATIC, $version_data['version']) == -1) {
 						return $version_data;
 					}
 				}
