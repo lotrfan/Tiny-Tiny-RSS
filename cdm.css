@@ -20,7 +20,7 @@ div.cdmHeader > span {
 }
 
 div.cdmHeader span.updated {
-	color : gray;
+	color : #555;
 	font-weight : normal;
 	font-size : 11px;
 	white-space : nowrap;
@@ -45,14 +45,6 @@ div.cdmHeader img, div.cdmFooter img {
 	margin : 0px 2px 0px 2px;
 }
 
-div.cdmContent a {
-	color : #4684ff;
-}
-
-div.cdmContent a:hover {
-	color : black;
-}
-
 div.cdmContentInner {
 	margin : 10px;
 	line-height : 20px;
@@ -67,7 +59,7 @@ div.cdmContentInner img {
 div.cdmFooter {
 	padding : 5px;
 	font-weight : normal;
-	color : gray;
+	color : #555;
 	clear : both;
 }
 
@@ -83,6 +75,10 @@ div.cdm.expandable {
 	border-style : solid;
 }
 
+div.cdm.expandable.active {
+	box-shadow : inset 0px 0px 3px 0px rgba(0,0,0,0.1);
+}
+
 div.cdm.expandable > hr {
 	display : none;
 }
@@ -92,18 +88,18 @@ div.cdm.expanded > hr {
 	margin-bottom : 0px;
 }
 
-div.cdm.Unread {
+div.cdm.expandable.Unread {
 	background : white;
 }
 
-div.cdm.active {
+div.cdm.expandable.active {
 	border-color : #88b0f0;
 	background : white ! important;
 }
 
 div.cdm.expandable div.cdmHeader a.title {
 	font-weight : bold;
-	color : gray;
+	color : #555;
 }
 
 div.cdm.expandable.Unread div.cdmHeader a.title {
@@ -120,7 +116,7 @@ div.cdm.expanded div.cdmHeader {
 
 div.cdm.expanded div.cdmHeader a.title {
 	font-size : 14px;
-	color : gray;
+	color : #555;
 	font-weight : bold;
 }
 
@@ -134,7 +130,7 @@ div.cdm.expanded.Unread div.cdmHeader a.title {
 }
 
 div.cdm.expanded div.cdmContent {
-	color : gray;
+	color : #555;
 }
 
 div.cdm.expanded.Unread div.cdmContent {
@@ -147,14 +143,14 @@ div.cdm.active div.cdmContent {
 
 span.cdmExcerpt {
 	font-size : 11px;
-	color : gray;
+	color : #555;
 	font-weight : normal;
 	cursor : pointer;
 }
 
 div.cdmContent div.postEnclosures {
 	margin-top : 1em;
-	color : gray;
+	color : #555;
 }
 
 div.cdmFeedTitle {
@@ -167,13 +163,13 @@ div.cdmFeedTitle {
 }
 
 div.cdmFeedTitle a.title {
-	color : gray;
+	color : #555;
 	font-style : italic;
 	font-weight : bold;
 }
 
 div.cdmFeedTitle a {
-	color : gray;
+	color : #555;
 }
 
 div.cdmFeedTitle a:hover {
@@ -188,7 +184,7 @@ div.cdmHeader span.hlFeed {
 
 div.cdmHeader div.hlFeed, div.cdmHeader div.hlFeed a {
 	vertical-align : middle;
-	color : gray;
+	color : #555;
 	font-weight : normal;
 	font-style : italic;
 	font-size : 11px;
@@ -209,7 +205,7 @@ div.cdmContentInner iframe {
 }
 
 div.cdmHeader span.author {
-	color : gray;
+	color : #555;
 	font-size : 11px;
 	font-weight : normal;
 }

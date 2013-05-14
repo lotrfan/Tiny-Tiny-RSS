@@ -7,6 +7,15 @@ body#ttrssMain, body#ttrssPrefs, body#ttrssLogin, body {
 	font-size: 14px;
 }
 
+html, body#ttrssMain, body#ttrssPrefs, #main {
+	width: 100%; 
+	height: 100%;
+	border: 0; 
+	padding: 0; 
+	margin: 0;
+} 
+
+
 body#ttrssPrefs {
 	background-color : #ecf4ff;
 }
@@ -21,20 +30,12 @@ div.postReply {
 	padding : 0px;
 }
 
-div.postReply a {
-	color : #4684ff;
-}
-
-div.postReply a:hover {
-	color : black;
-}
-
 div.postReply div.postHeader {
 	border-width : 0px 0px 1px 0px;
 	border-style : solid;
 	border-color : #c0c0c0;
 	background : #fafafa;
-	box-shadow : 0px 0px 3px 0px #ccc;
+	box-shadow : 0px 0px 3px 0px rgba(0,0,0,0.1);
 	padding : 5px;
 	color : #909090;
 }
@@ -51,7 +52,6 @@ div.postReply div.postDate {
 
 div.postReply div.postContent {
 	padding : 10px;
-	font-size : 12px;
 }
 
 div.postReply div.postContent img {
@@ -62,7 +62,7 @@ div.postReply div.postContent img {
 
 div.postReply div.postEnclosures {
 	margin-top : 1em;
-	color : gray;
+	color : #555;
 }
 
 div.postReply img.tagsPic {
@@ -122,12 +122,12 @@ hr {
 }
 
 a {
-	color : black;
+	color : #4684ff;
 	text-decoration : none;
 }
 
 a:hover {
-	color : #4684ff;
+	color : #88b0f0;
 }
 
 #piggie {
@@ -191,11 +191,15 @@ a:hover {
 
 .hl div.hlTitle a {
 	font-weight : bold;
-	color : gray;
+	color : #555;
 }
 
 .hl.Unread div.hlTitle a {
 	color : black;
+}
+
+.hl.active {
+	box-shadow : inset 0px 0px 3px 0px rgba(0,0,0,0.1);
 }
 
 .hl.active div.hlTitle a {
@@ -207,7 +211,11 @@ a:hover {
 }
 
 #headlines-frame div.hl:nth-child(even) {
-	background : #f0f0f0;
+	background : #fafafa;
+}
+
+#headlines-frame.normal {
+	font-size : 13px;
 }
 
 .hl {
@@ -234,7 +242,7 @@ div.filterTestHolder {
 #content-insert blockquote, #headlines-frame blockquote, .dijitContentPane blockquote {
 	margin : 5px 0px 5px 0px;
 	padding : 10px;
-	color : gray;
+	color : #555;
 	border-width : 0px 0px 0px 3px;
 	border-color : #c0c0c0;
 	border-style : solid;
@@ -250,7 +258,7 @@ div.filterTestHolder {
 #content-insert pre, #headlines-frame pre, .dijitContentPane pre {
 	margin : 5px 0px 5px 0px;
 	padding : 10px;
-	color : gray;
+	color : #555;
 	font-family : monospace;
 	font-size : 12px;
 	border-width : 0px;
@@ -311,7 +319,7 @@ ul.nomarks {
 }
 
 div.prefHelp {
-	color : gray;
+	color : #555;
 	padding : 5px;
 }
 
@@ -320,15 +328,7 @@ span.feed_error {
 }
 
 .insensitive {
-	color : gray;
-}
-
-.insensitive a {
-	color : #4684ff;
-}
-
-.insensitive a:hover {
-	color : black;
+	color : #555;
 }
 
 div#headlines-toolbar {
@@ -337,7 +337,7 @@ div#headlines-toolbar {
 	border-color : #c0c0c0;
 	font-size : 12px;
 	font-family : "Segoe UI", Tahoma, sans-serif;
-	color : gray;
+	color : #555;
 	padding : 0px;
 	margin : 0px;
 	overflow : hidden;
@@ -364,15 +364,11 @@ div#headlines-toolbar span.r span.error {
 } 
 
 div#headlines-toolbar span.r a {
-	color : gray;
-}
-
-div#headlines-toolbar span.r a:hover {
-	color : black;
+	color : #555;
 }
 
 span.contentPreview {
-	color : gray;
+	color : #555;
 	font-weight : normal;
 }
 
@@ -395,13 +391,12 @@ span.hlLabelRef {
 
 div.postHeader div.postDate {
 	text-align : right;
-	color : gray;
+	color : #555;
 	float : right;
 }
 
 div.postHeader div {
 	padding-bottom : 3px;
-	font-size : 12px;
 }
 
 #feedUpdateErrors {
@@ -409,7 +404,6 @@ div.postHeader div {
 }
 
 #allEntryTags {
-	font-size : 12px;
 	border-width : 0px 0px 1px 0px;
 	border-style : solid;
 	border-color : #c0c0c0;
@@ -428,7 +422,7 @@ a.hlFeed {
 	padding : 1px 2px 1px 2px;
 	margin-bottom : 2px;
 	margin-top : 2px;
-	color : gray;
+	color : #555;
 }
 
 a.hlFeed:hover {
@@ -466,7 +460,7 @@ ul.feedErrorsList {
 }
 
 ul.feedErrorsList em {
-	color : gray;
+	color : #555;
 }
 
 ul.browseFeedList {
@@ -557,13 +551,12 @@ div.whiteBox {
 	padding : 1em;
 }
 
-html, body#ttrssMain, #main {
+/* html, body#ttrssMain, #main {
 	width: 100%; 
 	height: 100%;
-	border: 0; 
 	padding: 0; 
 	margin: 0;
-} 
+} */
 
 #toolbar div.actionChooser {
 	display : table-cell;
@@ -599,10 +592,6 @@ div.autocomplete ul li {
 	cursor : pointer;
 }
 
-a.visibleLink {
-	color : #4684ff;
-}
-
 .hlContentH a, .hlContentH span {
 	color : #00cc00;
 }
@@ -629,7 +618,7 @@ img.hlScorePic {
 
 div.dlgSec {
 	font-size : 12px;
-	color : gray;
+	color : #555;
 	font-weight : bold;
 	clear : both;
 	height : 20px;
@@ -692,7 +681,7 @@ div#cmdline {
 	left : 5px;
 	bottom : 5px;
 	font-size : 11px;
-	color : gray;
+	color : #555;
 	font-weight : bold;
 	background-color : white;
 	border : 1px solid #88b0f0;
@@ -734,7 +723,7 @@ div.hlRight img {
 }
 
 span.hlUpdated {
-	color : gray;
+	color : #555;
 	min-width : 100px;
 	display : table-cell;
 	width : 100%;
@@ -774,7 +763,7 @@ div.fatalError textarea {
 	height : 100px;
 }
 
-#main {
+#ttrssMain #main {
 	border-width : 0px;
 	margin : 0px;
 	padding : 0px;
@@ -801,6 +790,8 @@ div.fatalError textarea {
 	border-bottom-width : 0px;
 	border-top-width : 0px;
 	overflow : hidden;
+	box-shadow : inset 0px 0px 3px rgba(0,0,0,0.1);
+	background : #f9fbff;
 }
 
 #headlines-wrap-inner {
@@ -815,6 +806,7 @@ div.fatalError textarea {
 	border-style : solid;
 	border-width : 0px;
 	margin-top : 0px;
+	box-shadow : inset 0px 0px 3px rgba(0,0,0,0.1);
 }
 
 #headlines-toolbar_splitter, #toolbar_splitter {
@@ -827,12 +819,13 @@ div.fatalError textarea {
 	border-width : 0px;
 	white-space: nowrap;
 	font-size : 12px;
+	box-shadow : 0px 0px 2px rgba(0,0,0,0.1);
 }
 
 #header {
 	border-width : 0px;
 	text-align : right;
-	color : gray;
+	color : #555;
 	padding : 5px 5px 0px 0px;
 	margin : 0px;
 	position : absolute;
@@ -843,7 +836,7 @@ div.fatalError textarea {
 
 #footer {
 	text-align : center;
-	color : gray;
+	color : #555;
 	padding : 4px 4px 8px 4px;
 	border-width : 0px;
 }
@@ -862,8 +855,12 @@ div.fatalError textarea {
 	font-weight : bold;
 }
 
+.dijitTreeLabel {
+	outline : 0;
+}
+
 .feedParam {
-	color : gray;
+	color : #555;
 	float : right;
 	margin-right : 1em;
 }
@@ -874,7 +871,7 @@ div.fatalError textarea {
 }
 
 .dijitTreeLabel.Disabled, .labelParam.Disabled {
-	color : gray;
+	color : #555;
 }
 
 .dijitTreeRow.Error {
@@ -904,10 +901,10 @@ img.feedIcon, img.tinyFeedIcon {
 
 .player {
 	display : inline-block;
-	color : gray;
+	color : #555;
 	font-size : 11px;
 	font-family : sans-serif;
-	border : 1px solid gray;
+	border : 1px solid #555;
 	padding : 0px 4px 0px 4px;
 	margin : 0px 2px 0px 2px;
 	width : 50px;
@@ -930,7 +927,7 @@ img.feedIcon, img.tinyFeedIcon {
 	margin-left : 1px;
 	text-align : center;
 	padding : 1em;
-	color : gray;
+	color : #555;
 }
 
 ul#filterDlg_Matches, ul#filterDlg_Actions {
@@ -994,7 +991,7 @@ div.postContent iframe {
 }
 
 div.postHeader span.author {
-	color : gray;
+	color : #555;
 	font-size : 11px;
 	font-weight : normal;
 }
@@ -1048,6 +1045,7 @@ div.hl.active {
 	padding : 2px 0px 2px;
 	border-width : 1px;
 	border-color : transparent;
+	color : #333;
 }
 
 #feedTree .dijitTreeNode {
@@ -1088,3 +1086,4 @@ body#ttrssPrefs hr {
 	border-color : #ecf4ff;
 	max-width : 100%;
 }
+
