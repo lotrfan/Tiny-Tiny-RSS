@@ -1240,6 +1240,29 @@ function headlines_scroll_handler(e) {
 
 		unpackVisibleHeadlines();
 
+		// set topmost child in the buffer as active
+		if (getInitParam("cdm_auto_catchup") == 1) {
+			var rows = $$("#headlines-frame > div[id*=RROW]");
+
+			for (var i = 0; i < rows.length; i++) {
+				var child = rows[i];
+
+				if ($("headlines-frame").scrollTop < child.offsetTop &&
+					child.offsetTop - $("headlines-frame").scrollTop < 100) {
+
+					if (_active_article_id) {
+						var row = $("RROW-" + _active_article_id);
+						if (row) row.removeClassName("active");
+					}
+
+					_active_article_id = child.id.replace("RROW-", "");
+					showArticleInHeadlines(_active_article_id, true);
+					updateSelectedPrompt();
+					break;
+				}
+			}
+		}
+
 		if (!_infscroll_disable) {
 			if ((hsp && e.scrollTop + e.offsetHeight >= hsp.offsetTop - hsp.offsetHeight) ||
 					(e.scrollHeight != 0 &&
@@ -1275,6 +1298,7 @@ function headlines_scroll_handler(e) {
 
 						//console.log("auto_catchup_batch: " + catchup_id_batch.toString());
 					}
+
 				});
 
 			if (catchup_id_batch.length > 0) {

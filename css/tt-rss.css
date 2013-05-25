@@ -7,15 +7,6 @@ body#ttrssMain, body#ttrssPrefs, body#ttrssLogin, body {
 	font-size: 14px;
 }
 
-html, body#ttrssMain, body#ttrssPrefs, #main {
-	width: 100%; 
-	height: 100%;
-	border: 0; 
-	padding: 0; 
-	margin: 0;
-} 
-
-
 body#ttrssPrefs {
 	background-color : #ecf4ff;
 }
@@ -191,7 +182,7 @@ a:hover {
 
 .hl div.hlTitle a {
 	font-weight : bold;
-	color : #555;
+	color : #999;
 }
 
 .hl.Unread div.hlTitle a {
@@ -204,15 +195,20 @@ a:hover {
 
 .hl.active div.hlTitle a {
 	color : #4684ff;
+	text-shadow : 1px 1px 2px #fff;
+}
+
+.hl.Selected {
+	background : #f9fbff;
 }
 
 .hl.Grayed {
 	color : #909090;
 }
 
-#headlines-frame div.hl:nth-child(even) {
+/* #headlines-frame div.hl:nth-child(even) {
 	background : #fafafa;
-}
+} */
 
 #headlines-frame.normal {
 
@@ -367,12 +363,9 @@ div#headlines-toolbar span.r a {
 }
 
 span.contentPreview {
-	color : #555;
+	color : #999;
 	font-weight : normal;
-}
-
-span.contentPreview:hover {
-	color : #4684ff;
+	text-shadow : 1px 1px 2px #fff;
 }
 
 span.hlLabelRef {
@@ -888,6 +881,14 @@ img.feedIcon, img.tinyFeedIcon {
 	display : inline-block;
 }
 
+.dijitToolbar {
+	text-shadow : 1px 1px 2px #fff;
+}
+
+.dijitAccordionTitleFocus {
+	text-shadow : 1px 1px 2px #fff;
+}
+
 .dijitDialog .dijitToolbar {
 	border : 1px solid #c0c0c0;
 }
@@ -1101,3 +1102,10 @@ body#ttrssPrefs hr {
 	max-width : 100%;
 }
 
+.dijitMenuItemLabel {
+	font-size : 13px;
+}
+
+.dijitTreeRowSelected .dijitTreeLabel {
+	text-shadow : 1px 1px 2px #fff;
+}

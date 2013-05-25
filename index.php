@@ -57,13 +57,14 @@
 	<title>Tiny Tiny RSS</title>
 
 	<?php stylesheet_tag("lib/dijit/themes/claro/claro.css"); ?>
-	<?php stylesheet_tag("tt-rss.css"); ?>
-	<?php stylesheet_tag("cdm.css"); ?>
+	<?php stylesheet_tag("css/layout.css"); ?>
 
 	<?php if ($_SESSION["uid"]) {
 		$theme = get_pref( "USER_CSS_THEME", $_SESSION["uid"], false);
-		if ($theme) {
+		if ($theme && file_exists("themes/$theme")) {
 			stylesheet_tag("themes/$theme");
+		} else {
+			stylesheet_tag("themes/default.css");
 		}
 	}
 	?>

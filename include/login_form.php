@@ -2,7 +2,7 @@
 <head>
 	<title>Tiny Tiny RSS : Login</title>
 	<link rel="stylesheet" type="text/css" href="lib/dijit/themes/claro/claro.css"/>
-	<link rel="stylesheet" type="text/css" href="tt-rss.css">
+	<link rel="stylesheet" type="text/css" href="css/tt-rss.css">
 	<link rel="shortcut icon" type="image/png" href="images/favicon.png">
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 	<script type="text/javascript" src="lib/dojo/dojo.js"></script>
@@ -188,7 +188,6 @@ function bwLimitChange(elem) {
 				value="<?php echo $_SESSION["fake_login"] ?>" />
 		</div>
 
-		<?php if (strpos(PLUGINS, "auth_internal") !== FALSE) { ?>
 
 		<div class="row">
 			<label><?php echo __("Password:") ?></label>
@@ -196,10 +195,11 @@ function bwLimitChange(elem) {
 					style="width : 220px" class="input"
 					value="<?php echo $_SESSION["fake_password"] ?>"/>
 			<label></label>
+		<?php if (strpos(PLUGINS, "auth_internal") !== FALSE) { ?>
 			<a class='forgotpass' href="public.php?op=forgotpass"><?php echo __("I forgot my password") ?></a>
+		<?php } ?>
 		</div>
 
-		<?php } ?>
 
 		<div class="row">
 			<label><?php echo __("Profile:") ?></label>

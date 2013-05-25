@@ -17,7 +17,22 @@ class FeedParser {
 		libxml_clear_errors();
 		$this->doc = new DOMDocument();
 		$this->doc->loadXML($data);
-		$this->error = $this->format_error(libxml_get_last_error());
+
+		$error = libxml_get_last_error();
+
+		if ($error && $error->code == 9) {
+			libxml_clear_errors();
+
+			// we might want to try guessing input encoding here too
+			$data = iconv("UTF-8", "UTF-8//IGNORE", $data);
+
+			$this->doc = new DOMDocument();
+			$this->doc->loadXML($data);
+
+			$error = libxml_get_last_error();
+		}
+
+		$this->error = $this->format_error($error);
 		libxml_clear_errors();
 
 		$this->items = array();
@@ -90,7 +105,6 @@ class FeedParser {
 
 				break;
 			case $this::FEED_RSS:
-
 				$title = $xpath->query("//channel/title")->item(0);
 
 				if ($title) {
@@ -99,8 +113,11 @@ class FeedParser {
 
 				$link = $xpath->query("//channel/link")->item(0);
 
-				if ($link && $link->hasAttributes()) {
-					$this->link = $link->getAttribute("href");
+				if ($link) {
+					if ($link->getAttribute("href"))
+						$this->link = $link->getAttribute("href");
+					else if ($link->nodeValue)
+						$this->link = $link->nodeValue;
 				}
 
 				$articles = $xpath->query("//channel/item");
@@ -182,7 +199,8 @@ class FeedParser {
 			}
 			break;
 		case $this::FEED_RSS:
-			$links = $this->xpath->query("//channel/link");
+			$links = $this->xpath->query("//atom:link");
+
 			foreach ($links as $link) {
 				if (!$rel || $link->hasAttribute('rel') && $link->getAttribute('rel') == $rel) {
 					array_push($rv, $link->getAttribute('href'));
