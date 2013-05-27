@@ -241,7 +241,7 @@ class Import_Export extends Plugin implements IHandler {
 							break;
 						case 'content':
 							// allow HTML tags... probably should sanitize in the same way as regular updating does (stripping invalid tags)
-							$article[$child->nodeName] = db_escape_string($child->nodeValue, 0);
+							$article[$child->nodeName] = db_escape_string($child->nodeValue, false);
 							break;
 						default:
 							$article[$child->nodeName] = db_escape_string($child->nodeValue);
