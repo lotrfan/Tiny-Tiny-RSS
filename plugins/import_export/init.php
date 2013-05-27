@@ -235,10 +235,17 @@ class Import_Export extends Plugin implements IHandler {
 					$article = array();
 
 					foreach ($article_node->childNodes as $child) {
-						if ($child->nodeName != 'label_cache')
-							$article[$child->nodeName] = db_escape_string($child->nodeValue);
-						else
+						switch ($child->nodeName) {
+						case 'label_cache':
 							$article[$child->nodeName] = $child->nodeValue;
+							break;
+						case 'content':
+							// allow HTML tags... probably should sanitize in the same way as regular updating does (stripping invalid tags)
+							$article[$child->nodeName] = db_escape_string($child->nodeValue, 0);
+							break;
+						default:
+							$article[$child->nodeName] = db_escape_string($child->nodeValue);
+						}
 					}
 
 					//print_r($article);
