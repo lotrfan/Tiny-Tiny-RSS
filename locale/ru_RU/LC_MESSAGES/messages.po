@@ -122,7 +122,7 @@ msgid "Frontend sanity check failed."
 msgstr ""
 
 #: errors.php:19
-msgid "Incorrect database schema version. &lt;a href='db-updater.php'&gt;Please update&lt;/a&gt;."
+msgid "Incorrect database schema version. &lt;a href='public.php?op=dbupdate'&gt;Please update&lt;/a&gt;."
 msgstr "Некорректная версия базы данных. &lt;a href='update.php'&gt;Пожалуйста обновите её&lt;/a&gt;."
 
 #: errors.php:21

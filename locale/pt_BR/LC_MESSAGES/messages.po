@@ -120,7 +120,7 @@ msgstr ""
 
 #: errors.php:19
 msgid ""
-"Incorrect database schema version. &lt;a href='db-updater.php'&gt;Please "
+"Incorrect database schema version. &lt;a href='public.php?op=dbupdate'&gt;Please "
 "update&lt;/a&gt;."
 msgstr ""
 

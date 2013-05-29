@@ -126,7 +126,7 @@ msgid "Frontend sanity check failed."
 msgstr "Frontend Sicherheitsprüfung fehlgeschlagen."
 
 #: errors.php:19
-msgid "Incorrect database schema version. &lt;a href='db-updater.php'&gt;Please update&lt;/a&gt;."
+msgid "Incorrect database schema version. &lt;a href='public.php?op=dbupdate'&gt;Please update&lt;/a&gt;."
 msgstr "Falsche Version des Datenbankschemas. &lt;a href='update.php'&gt;Bitte aktualisieren&lt;/a&gt;."
 
 #: errors.php:21

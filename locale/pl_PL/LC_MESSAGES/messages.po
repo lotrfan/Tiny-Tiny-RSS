@@ -122,8 +122,8 @@ msgid "Frontend sanity check failed."
 msgstr "Weryfikacja poprawności interfejsu użytkownika nie powiodła się"
 
 #: errors.php:19
-msgid "Incorrect database schema version. &lt;a href='db-updater.php'&gt;Please update&lt;/a&gt;."
-msgstr "Nieprawidłowa wersja schematu bazy danych. &lt;a href='db-updater.php'&gt;Przeprowadź aktualizację&lt;/a&gt;."
+msgid "Incorrect database schema version. &lt;a href='public.php?op=dbupdate'&gt;Please update&lt;/a&gt;."
+msgstr "Nieprawidłowa wersja schematu bazy danych. &lt;a href='public.php?op=dbupdate'&gt;Przeprowadź aktualizację&lt;/a&gt;."
 
 #: errors.php:21
 msgid "Request not authorized."

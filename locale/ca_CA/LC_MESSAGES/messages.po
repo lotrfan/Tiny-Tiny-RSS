@@ -122,7 +122,7 @@ msgstr "La revisió de la interfície ha fallat."
 
 #: errors.php:19
 #, fuzzy
-msgid "Incorrect database schema version. &lt;a href='db-updater.php'&gt;Please update&lt;/a&gt;."
+msgid "Incorrect database schema version. &lt;a href='public.php?op=dbupdate'&gt;Please update&lt;/a&gt;."
 msgstr "Versió de l'esquema de la base de dades incorrecta. &lt;a href='update.php'&gt;Si us plau, actualitzeu-lo&lt;/a&gt;."
 
 #: errors.php:21

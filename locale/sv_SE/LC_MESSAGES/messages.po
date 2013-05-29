@@ -125,10 +125,10 @@ msgstr "Sanitetskontroll för \"frontend\" misslyckades."
 
 #: errors.php:19
 msgid ""
-"Incorrect database schema version. &lt;a href='db-updater.php'&gt;Please "
+"Incorrect database schema version. &lt;a href='public.php?op=dbupdate'&gt;Please "
 "update&lt;/a&gt;."
 msgstr ""
-"Felaktig version för databasshema. &lt;a href='db-updater.php'&gt;Vänligen "
+"Felaktig version för databasshema. &lt;a href='public.php?op=dbupdate'&gt;Vänligen "
 "uppdatera&lt;/a&gt;."
 
 #: errors.php:21

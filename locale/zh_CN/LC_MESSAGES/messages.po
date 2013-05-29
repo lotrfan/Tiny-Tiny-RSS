@@ -122,8 +122,8 @@ msgid "Frontend sanity check failed."
 msgstr "前端完整性检查失败。"
 
 #: errors.php:19
-msgid "Incorrect database schema version. &lt;a href='db-updater.php'&gt;Please update&lt;/a&gt;."
-msgstr "数据库表结构版本错误。&lt;a href='db-updater.php'&gt;请更新&lt;/a&gt;。"
+msgid "Incorrect database schema version. &lt;a href='public.php?op=dbupdate'&gt;Please update&lt;/a&gt;."
+msgstr "数据库表结构版本错误。&lt;a href='public.php?op=dbupdate'&gt;请更新&lt;/a&gt;。"
 
 #: errors.php:21
 msgid "Request not authorized."

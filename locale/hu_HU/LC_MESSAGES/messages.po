@@ -121,8 +121,8 @@ msgid "Frontend sanity check failed."
 msgstr "Frontend épség ellenőrzés sikertelen"
 
 #: errors.php:19
-msgid "Incorrect database schema version. &lt;a href='db-updater.php'&gt;Please update&lt;/a&gt;."
-msgstr "Érvénytelen adatbázis séma verzió. &lt;a href='db-updater.php'&gt;Kérem frissítse&lt;/a&gt;."
+msgid "Incorrect database schema version. &lt;a href='public.php?op=dbupdate'&gt;Please update&lt;/a&gt;."
+msgstr "Érvénytelen adatbázis séma verzió. &lt;a href='public.php?op=dbupdate'&gt;Kérem frissítse&lt;/a&gt;."
 
 #: errors.php:21
 msgid "Request not authorized."

@@ -121,7 +121,7 @@ msgstr "Frontprogramsjekk feilet"
 
 #: errors.php:19
 #, fuzzy
-msgid "Incorrect database schema version. &lt;a href='db-updater.php'&gt;Please update&lt;/a&gt;."
+msgid "Incorrect database schema version. &lt;a href='public.php?op=dbupdate'&gt;Please update&lt;/a&gt;."
 msgstr "Feil databaseskjemautgave. &lt;a href='update.php'&gt;Vennligst oppdater&lt;/a&gt;."
 
 #: errors.php:21

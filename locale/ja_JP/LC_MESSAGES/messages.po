@@ -121,7 +121,7 @@ msgstr "フロントエンドの健全さの確認に失敗しました。"
 
 #: errors.php:19
 #, fuzzy
-msgid "Incorrect database schema version. &lt;a href='db-updater.php'&gt;Please update&lt;/a&gt;."
+msgid "Incorrect database schema version. &lt;a href='public.php?op=dbupdate'&gt;Please update&lt;/a&gt;."
 msgstr "データベーススキーマのバージョンが適切ではありません。&lt;a href='update.php'&gt;更新してください&lt;/a&gt;。"
 
 #: errors.php:21

@@ -121,8 +121,8 @@ msgid "Frontend sanity check failed."
 msgstr "Kontrola rozhraní selhala."
 
 #: errors.php:19
-msgid "Incorrect database schema version. &lt;a href='db-updater.php'&gt;Please update&lt;/a&gt;."
-msgstr "Nesprávná verze schématu databáze. &lt;a href='db-updater.php'&gt;Aktualizujte jej prosím&lt;/a&gt;."
+msgid "Incorrect database schema version. &lt;a href='public.php?op=dbupdate'&gt;Please update&lt;/a&gt;."
+msgstr "Nesprávná verze schématu databáze. &lt;a href='public.php?op=dbupdate'&gt;Aktualizujte jej prosím&lt;/a&gt;."
 
 #: errors.php:21
 msgid "Request not authorized."

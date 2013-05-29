@@ -124,8 +124,8 @@ msgid "Frontend sanity check failed."
 msgstr "Frontend gezondheidscontrole mislukt."
 
 #: errors.php:19
-msgid "Incorrect database schema version. &lt;a href='db-updater.php'&gt;Please update&lt;/a&gt;."
-msgstr "Onjuiste database schema versie. &lt;a href='db-updater.php'&gt;Bijwerken aub!&lt;/a&gt;."
+msgid "Incorrect database schema version. &lt;a href='public.php?op=dbupdate'&gt;Please update&lt;/a&gt;."
+msgstr "Onjuiste database schema versie. &lt;a href='public.php?op=dbupdate'&gt;Bijwerken aub!&lt;/a&gt;."
 
 #: errors.php:21
 msgid "Request not authorized."
