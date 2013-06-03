@@ -590,7 +590,7 @@ function moveToPost(mode, noscroll, noexpand) {
 
 					if (!getInitParam("cdm_expanded")) {
 
-						if (!noscroll && article.offsetTop < ctr.scrollTop) {
+						if (!noscroll && article && article.offsetTop < ctr.scrollTop) {
 							scrollArticle(-ctr.offsetHeight/4);
 						} else {
 							cdmExpandArticle(prev_id, noexpand);
@@ -1921,7 +1921,7 @@ function initHeadlinesMenu() {
 				}}));
 
 		menu.addChild(new dijit.MenuItem({
-			label: __("Toggle marked"),
+			label: __("Toggle starred"),
 			onClick: function(event) {
 				var ids = getSelectedArticleIds2();
 				// cast to string

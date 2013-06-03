@@ -1,6 +1,6 @@
 <?php
 	define('EXPECTED_CONFIG_VERSION', 26);
-	define('SCHEMA_VERSION', 120);
+	define('SCHEMA_VERSION', 121);
 
 	define('LABEL_BASE_INDEX', -1024);
 	define('PLUGIN_FEED_BASE_INDEX', -128);
@@ -317,7 +317,12 @@
 			$fetch_curl_used = true;
 
 			if (ini_get("safe_mode") || ini_get("open_basedir")) {
-				$ch = curl_init(geturl($url));
+				$new_url = geturl($url);
+				if (!$new_url) {
+				    // geturl has already populated $fetch_last_error
+				    return false;
+				}
+				$ch = curl_init($new_url);
 			} else {
 				$ch = curl_init($url);
 			}
@@ -961,22 +966,27 @@
 	}
 
 	function file_is_locked($filename) {
-		if (function_exists('flock')) {
-			$fp = @fopen(LOCK_DIRECTORY . "/$filename", "r");
-			if ($fp) {
-				if (flock($fp, LOCK_EX | LOCK_NB)) {
-					flock($fp, LOCK_UN);
+		if (file_exists(LOCK_DIRECTORY . "/$filename")) {
+			if (function_exists('flock')) {
+				$fp = @fopen(LOCK_DIRECTORY . "/$filename", "r");
+				if ($fp) {
+					if (flock($fp, LOCK_EX | LOCK_NB)) {
+						flock($fp, LOCK_UN);
+						fclose($fp);
+						return false;
+					}
 					fclose($fp);
+					return true;
+				} else {
 					return false;
 				}
-				fclose($fp);
-				return true;
-			} else {
-				return false;
 			}
+			return true; // consider the file always locked and skip the test
+		} else {
+			return false;
 		}
-		return true; // consider the file always locked and skip the test
 	}
+
 
 	function make_lockfile($filename) {
 		$fp = fopen(LOCK_DIRECTORY . "/$filename", "w");
@@ -3402,7 +3412,7 @@
 			$maxtags = min(5, count($tags));
 
 			for ($i = 0; $i < $maxtags; $i++) {
-				$tags_str .= "<a class=\"tag\" href=\"#\" onclick=\"viewfeed('".$tags[$i]."'\")>" . $tags[$i] . "</a>, ";
+				$tags_str .= "<a class=\"tag\" href=\"#\" onclick=\"viewfeed('".$tags[$i]."')\">" . $tags[$i] . "</a>, ";
 			}
 
 			$tags_str = mb_substr($tags_str, 0, mb_strlen($tags_str)-2);
@@ -3799,7 +3809,7 @@
 
 		$sphinxpair = explode(":", SPHINX_SERVER, 2);
 
-		$sphinxClient->SetServer($sphinxpair[0], $sphinxpair[1]);
+		$sphinxClient->SetServer($sphinxpair[0], (int)$sphinxpair[1]);
 		$sphinxClient->SetConnectTimeout(1);
 
 		$sphinxClient->SetFieldWeights(array('title' => 70, 'content' => 30,
@@ -4091,14 +4101,15 @@
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
 		//curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true); //CURLOPT_FOLLOWLOCATION Disabled...
 		curl_setopt($curl, CURLOPT_TIMEOUT, 60);
+		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
 
 		$html = curl_exec($curl);
 
 		$status = curl_getinfo($curl);
-		curl_close($curl);
 
 		if($status['http_code']!=200){
 			if($status['http_code'] == 301 || $status['http_code'] == 302) {
+				curl_close($curl);
 				list($header) = explode("\r\n\r\n", $html, 2);
 				$matches = array();
 				preg_match("/(Location:|URI:)[^(\n)]*/", $header, $matches);
@@ -4106,6 +4117,12 @@
 				$url_parsed = parse_url($url);
 				return (isset($url_parsed))? geturl($url):'';
 			}
+
+			global $fetch_last_error;
+
+			$fetch_last_error = curl_errno($curl) . " " . curl_error($curl);
+			curl_close($curl);
+
 			$oline='';
 			foreach($status as $key=>$eline){$oline.='['.$key.']'.$eline.' ';}
 			$line =$oline." \r\n ".$url."\r\n-----------------\r\n";
@@ -4113,6 +4130,7 @@
 #			fwrite($handle, $line);
 			return FALSE;
 		}
+		curl_close($curl);
 		return $url;
 	}
 
