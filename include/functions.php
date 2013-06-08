@@ -100,7 +100,7 @@
 		if ($_SESSION["uid"] && get_schema_version() >= 120) {
 			$pref_lang = get_pref("USER_LANGUAGE", $_SESSION["uid"]);
 
-			if ($pref_lang) {
+			if ($pref_lang && $pref_lang != 'auto') {
 				$lang = $pref_lang;
 			}
 		}
@@ -992,6 +992,13 @@
 		$fp = fopen(LOCK_DIRECTORY . "/$filename", "w");
 
 		if ($fp && flock($fp, LOCK_EX | LOCK_NB)) {
+			$stat_h = fstat($fp);
+			$stat_f = stat(LOCK_DIRECTORY . "/$filename");
+
+			if ($stat_h["ino"] != $stat_f["ino"] || $stat_h["dev"] != $stat_f["dev"]) {
+				return false;
+			}
+
 			if (function_exists('posix_getpid')) {
 				fwrite($fp, posix_getpid() . "\n");
 			}
@@ -3106,7 +3113,9 @@
 			$line["tags"] = get_article_tags($id, $owner_uid, $line["tag_cache"]);
 			unset($line["tag_cache"]);
 
-			$line["content"] = sanitize($line["content"], false, $owner_uid,	$line["site_url"]);
+			$line["content"] = sanitize($line["content"],
+				sql_bool_to_bool($line['hide_images']),
+				$owner_uid, $line["site_url"]);
 
 			foreach (PluginHost::getInstance()->get_hooks(PluginHost::HOOK_RENDER_ARTICLE) as $p) {
 				$line = $p->hook_render_article($line);
