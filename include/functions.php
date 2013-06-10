@@ -1,6 +1,6 @@
 <?php
 	define('EXPECTED_CONFIG_VERSION', 26);
-	define('SCHEMA_VERSION', 120);
+	define('SCHEMA_VERSION', 121);
 
 	define('LABEL_BASE_INDEX', -1024);
 	define('PLUGIN_FEED_BASE_INDEX', -128);
@@ -100,7 +100,7 @@
 		if ($_SESSION["uid"] && get_schema_version() >= 120) {
 			$pref_lang = get_pref("USER_LANGUAGE", $_SESSION["uid"]);
 
-			if ($pref_lang) {
+			if ($pref_lang && $pref_lang != 'auto') {
 				$lang = $pref_lang;
 			}
 		}
@@ -992,6 +992,13 @@
 		$fp = fopen(LOCK_DIRECTORY . "/$filename", "w");
 
 		if ($fp && flock($fp, LOCK_EX | LOCK_NB)) {
+			$stat_h = fstat($fp);
+			$stat_f = stat(LOCK_DIRECTORY . "/$filename");
+
+			if ($stat_h["ino"] != $stat_f["ino"] || $stat_h["dev"] != $stat_f["dev"]) {
+				return false;
+			}
+
 			if (function_exists('posix_getpid')) {
 				fwrite($fp, posix_getpid() . "\n");
 			}
@@ -3106,7 +3113,9 @@
 			$line["tags"] = get_article_tags($id, $owner_uid, $line["tag_cache"]);
 			unset($line["tag_cache"]);
 
-			$line["content"] = sanitize($line["content"], false, $owner_uid,	$line["site_url"]);
+			$line["content"] = sanitize($line["content"],
+				sql_bool_to_bool($line['hide_images']),
+				$owner_uid, $line["site_url"]);
 
 			foreach (PluginHost::getInstance()->get_hooks(PluginHost::HOOK_RENDER_ARTICLE) as $p) {
 				$line = $p->hook_render_article($line);
@@ -3412,7 +3421,7 @@
 			$maxtags = min(5, count($tags));
 
 			for ($i = 0; $i < $maxtags; $i++) {
-				$tags_str .= "<a class=\"tag\" href=\"#\" onclick=\"viewfeed('".$tags[$i]."'\")>" . $tags[$i] . "</a>, ";
+				$tags_str .= "<a class=\"tag\" href=\"#\" onclick=\"viewfeed('".$tags[$i]."')\">" . $tags[$i] . "</a>, ";
 			}
 
 			$tags_str = mb_substr($tags_str, 0, mb_strlen($tags_str)-2);
@@ -3809,7 +3818,7 @@
 
 		$sphinxpair = explode(":", SPHINX_SERVER, 2);
 
-		$sphinxClient->SetServer($sphinxpair[0], $sphinxpair[1]);
+		$sphinxClient->SetServer($sphinxpair[0], (int)$sphinxpair[1]);
 		$sphinxClient->SetConnectTimeout(1);
 
 		$sphinxClient->SetFieldWeights(array('title' => 70, 'content' => 30,
