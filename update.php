@@ -162,8 +162,9 @@
 	if (isset($options["daemon"])) {
 		while (true) {
 			$quiet = (isset($options["quiet"])) ? "--quiet" : "";
+			$phpini = get_cfg_var('cfg_file_path');
 
-			passthru(PHP_EXECUTABLE . " " . $argv[0] ." --daemon-loop $quiet");
+			passthru(PHP_EXECUTABLE . " " . ($phpini ? "-c \"${phpini}\" " : "") . $argv[0] ." --daemon-loop $quiet");
 			_debug("Sleeping for " . DAEMON_SLEEP_INTERVAL . " seconds...");
 			sleep(DAEMON_SLEEP_INTERVAL);
 		}

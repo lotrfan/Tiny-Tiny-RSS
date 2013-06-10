@@ -221,7 +221,9 @@
 
 					$my_pid = posix_getpid();
 
-					passthru(PHP_EXECUTABLE . " update.php --daemon-loop $quiet --task $j --pidlock $my_pid");
+					$phpini = get_cfg_var('cfg_file_path');
+
+					passthru(PHP_EXECUTABLE . ($phpini ? " -c \"${phpini}\"" : "") . " update.php --daemon-loop $quiet --task $j --pidlock $my_pid");
 
 					sleep(1);
 
