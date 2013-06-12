@@ -409,9 +409,9 @@ function toggleSelectRow(sender, row) {
 
 function checkboxToggleElement(elem, id) {
 	if (elem.checked) {
-		Effect.Appear(id, {duration : 0.5});
+		Element.show(id);
 	} else {
-		Effect.Fade(id, {duration : 0.5});
+		Element.hide(id);
 	}
 }
 
@@ -589,7 +589,7 @@ function filterDlgCheckAction(sender) {
 
 		// if selected action supports parameters, enable params field
 		if (action == 4 || action == 6 || action == 7) {
-			new Effect.Appear(action_param, {duration : 0.5});
+			new Element.show(action_param);
 			if (action != 7) {
 				Element.show(dijit.byId("filterDlg_actionParam").domNode);
 				Element.hide(dijit.byId("filterDlg_actionParamLabel").domNode);
@@ -867,7 +867,7 @@ function quickAddFeed() {
 										count++;
 									}
 
-									Effect.Appear('feedDlg_feedsContainer', {duration : 0.5});
+									Element.show('feedDlg_feedsContainer');
 
 									break;
 								case 5:

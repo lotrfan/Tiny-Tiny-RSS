@@ -222,8 +222,7 @@ dojo.declare("fox.FeedTree", dijit.Tree, {
 				ctr = node.counterNode;
 				ctr.innerHTML = item.unread > 0 ? item.unread : item.auxcounter;
 				item.unread > 0 || item.auxcounter > 0 ?
-					Effect.Appear(ctr, {duration : 0.3,
-					queue: { position: 'end', scope: 'CAPPEAR-' + item.id, limit: 1 }}) :
+					Element.show(ctr) :
 						Element.hide(ctr);
 
 				item.unread == 0 && item.auxcounter > 0 ? ctr.addClassName("aux") : ctr.removeClassName("aux");
@@ -390,8 +389,7 @@ dojo.declare("fox.FeedTree", dijit.Tree, {
 					var check_unread = tree.model.getFeedUnread(bare_id, true);
 
 					if (hide && cat_unread == 0 && check_unread == 0) {
-						Effect.Fade(node[0].rowNode, {duration : 0.3,
-							queue: { position: 'end', scope: 'FFADE-' + id, limit: 1 }});
+						Element.hide(node[0].rowNode);
 					} else {
 						Element.show(node[0].rowNode);
 						++cat_unread;
@@ -433,8 +431,7 @@ dojo.declare("fox.FeedTree", dijit.Tree, {
 
 				if (node) {
 					if (hide && unread == 0 && (bare_id > 0 || bare_id < _label_base_index || !show_special)) {
-						Effect.Fade(node[0].rowNode, {duration : 0.3,
-							queue: { position: 'end', scope: 'FFADE-' + id, limit: 1 }});
+						Element.hide(node[0].rowNode);
 					} else {
 						Element.show(node[0].rowNode);
 						++cat_unread;

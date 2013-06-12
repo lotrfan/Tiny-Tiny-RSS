@@ -164,7 +164,7 @@ function headlines_callback2(transport, offset, background, infscroll_req) {
 						dojo.parser.parse(child);
 
 						if (!Element.visible(child))
-							new Effect.Appear(child, { duration : 0.5 });
+							new Element.show(child);
 					});
 
 				} else {
@@ -1609,7 +1609,7 @@ function dismissArticle(id) {
 
 		toggleUnread(id, 0, true);
 
-		new Effect.Fade(elem, {duration : 0.5});
+		new Element.hide(elem);
 
 		if (id == getActiveArticleId()) {
 			setActiveArticleId(0);
@@ -1632,7 +1632,7 @@ function dismissSelectedArticles() {
 
 			if (elem.className && elem.hasClassName("Selected") &&
 					ids[i] != getActiveArticleId()) {
-				new Effect.Fade(elem, {duration : 0.5});
+				new Element.hide(elem);
 				sel.push(ids[i]);
 			} else {
 				tmp.push(ids[i]);
@@ -1660,7 +1660,7 @@ function dismissReadArticles() {
 			if (elem.className && !elem.hasClassName("Unread") &&
 					!elem.hasClassName("Selected")) {
 
-				new Effect.Fade(elem, {duration : 0.5});
+				new Element.hide(elem);
 			} else {
 				tmp.push(ids[i]);
 			}
