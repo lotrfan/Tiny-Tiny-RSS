@@ -1632,7 +1632,7 @@ function dismissSelectedArticles() {
 
 			if (elem.className && elem.hasClassName("Selected") &&
 					ids[i] != getActiveArticleId()) {
-				new Element.hide(elem);
+				new Element.remove(elem);
 				sel.push(ids[i]);
 			} else {
 				tmp.push(ids[i]);
@@ -1660,7 +1660,7 @@ function dismissReadArticles() {
 			if (elem.className && !elem.hasClassName("Unread") &&
 					!elem.hasClassName("Selected")) {
 
-				new Element.hide(elem);
+				new Element.remove(elem);
 			} else {
 				tmp.push(ids[i]);
 			}
