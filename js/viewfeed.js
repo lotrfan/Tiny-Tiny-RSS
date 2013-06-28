@@ -1314,7 +1314,7 @@ function headlines_scroll_handler(e) {
 			if (hsp) hsp.innerHTML = "";
 		}
 
-		if (getInitParam("cdm_expanded") && isCdmMode()) {
+		if (isCdmMode()) {
 			updateFloatingTitle();
 		}
 
