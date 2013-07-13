@@ -40,18 +40,18 @@ class Af_GoComics extends Plugin {
 						}
 					}
 
-                    if (!$basenode) {
-                        // fallback on the smaller version
-                        foreach ($entries as $entry) {
+					if (!$basenode) {
+						// fallback on the smaller version
+						foreach ($entries as $entry) {
 
-                            if (preg_match("/(http:\/\/assets.amuniversal.com\/.*)/i", $entry->getAttribute("src"), $matches)) {
+							if (preg_match("/(http:\/\/assets.amuniversal.com\/.*)/i", $entry->getAttribute("src"), $matches)) {
 
-                                $entry->setAttribute("src", $matches[0]);
-                                $basenode = $entry;
-                                break;
-                            }
-                        }
-                    }
+								$entry->setAttribute("src", $matches[0]);
+								$basenode = $entry;
+								break;
+							}
+						}
+					}
 
 					if ($basenode) {
 						$article["content"] = $doc->saveXML($basenode);
