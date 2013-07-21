@@ -48,9 +48,11 @@ class Feeds extends Handler_Protected {
 
 		// right part
 
+		$error_class = $error ? "error" : "";
+
 		$reply .= "<span class='r'>";
 		$reply .= "<span id='selected_prompt'></span>";
-		$reply .= "<span id='feed_title'>";
+		$reply .= "<span id='feed_title' class='$error_class'>";
 
 		if ($feed_site_url) {
 			$last_updated = T_sprintf("Last updated: %s",
@@ -61,7 +63,8 @@ class Feeds extends Handler_Protected {
 				truncate_string($feed_title,30)."</a>";
 
 			if ($error) {
-				$reply .= "&nbsp;<img title='$error' src='images/error.png' alt='error' class=\"noborder\" style=\"vertical-align : middle\">";
+				$error = htmlspecialchars($error);
+				$reply .= "&nbsp;<img title=\"$error\" src='images/error.png' alt='error' class=\"noborder\" style=\"vertical-align : middle\">";
 			}
 
 		} else {
@@ -577,7 +580,7 @@ class Feeds extends Handler_Protected {
 					else
 						$excerpt_hidden = "style=\"display : none\"";
 
-					$reply['content'] .= "<span $excerpt_hidden id=\"CEXC-$id\" class=\"cdmExcerpt\">" . $line["content_preview"] . "</span>";
+					$reply['content'] .= "<span $excerpt_hidden id=\"CEXC-$id\" class=\"cdmExcerpt\">" . $content_preview . "</span>";
 
 					$reply['content'] .= "</span>";
 

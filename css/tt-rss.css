@@ -320,10 +320,6 @@ div.prefHelp {
 	padding : 5px;
 }
 
-span.feed_error {
-	color : red;
-}
-
 .insensitive {
 	color : #555;
 }
@@ -356,9 +352,9 @@ div#headlines-toolbar span.r {
 	text-align : right;
 }	
 
-div#headlines-toolbar span.r span.error {
+#headlines-toolbar span.r .error a {
 	color : red;
-} 
+}
 
 div#headlines-toolbar span.r a {
 	color : #555;
@@ -849,8 +845,12 @@ div.fatalError textarea {
 	overflow : auto;
 }
 
-.dijitTreeLabel.Unread {
+#feedTree .dijitTreeRow .dijitTreeLabel.Unread {
 	font-weight : bold;
+}
+
+#feedTree .dijitTreeRow.Error .dijitTreeLabel {
+	color : red;
 }
 
 .dijitTreeLabel {
@@ -994,6 +994,7 @@ span.collapseBtn {
 
 div.postContent p {
 	max-width : 650px;
+	text-align : justify;
 }
 
 div.postContent iframe {
@@ -1016,6 +1017,7 @@ body#ttrssZoom {
 
 body#ttrssZoom div.postContent p {
 	max-width : 650px;
+	text-align : justify;
 }
 
 body#ttrssZoom div.postHeader {
@@ -1120,6 +1122,7 @@ body#ttrssMain #feedTree {
 	border-radius : 4px;
 	vertical-align : middle;
 	float : right;
+	position : relative;
 	line-height : 14px;
 	margin-right : 4px;
 	margin-top : 3px;

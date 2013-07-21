@@ -349,6 +349,10 @@
 				curl_setopt($ch, CURLOPT_POSTFIELDS, $post_query);
 			}
 
+			if ((OPENSSL_VERSION_NUMBER >= 0x0090808f) && (OPENSSL_VERSION_NUMBER < 0x10000000)) {
+				curl_setopt($ch, CURLOPT_SSLVERSION, 3);
+			}
+
 			if ($login && $pass)
 				curl_setopt($ch, CURLOPT_USERPWD, "$login:$pass");
 
@@ -4153,6 +4157,10 @@
 		curl_setopt($curl, CURLOPT_TIMEOUT, 60);
 		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
 
+		if ((OPENSSL_VERSION_NUMBER >= 0x0090808f) && (OPENSSL_VERSION_NUMBER < 0x10000000)) {
+			curl_setopt($curl, CURLOPT_SSLVERSION, 3);
+		}
+
 		$html = curl_exec($curl);
 
 		$status = curl_getinfo($curl);
@@ -4270,16 +4278,21 @@
 		}
 
 		function ngettext(msg1, msg2, n) {
-			return (parseInt(n) > 1) ? msg2 : msg1;
+			return __((parseInt(n) > 1) ? msg2 : msg1);
 		}';
 
 		$l10n = _get_reader();
 
 		for ($i = 0; $i < $l10n->total; $i++) {
 			$orig = $l10n->get_original_string($i);
-			$translation = __($orig);
-
-			print T_js_decl($orig, $translation);
+			if(strpos($orig, "\000") !== FALSE) { // Plural forms
+				$key = explode(chr(0), $orig);
+				print T_js_decl($key[0], _ngettext($key[0], $key[1], 1)); // Singular
+				print T_js_decl($key[1], _ngettext($key[0], $key[1], 2)); // Plural
+			} else {
+				$translation = __($orig);
+				print T_js_decl($orig, $translation);
+			}
 		}
 	}
 
