@@ -1,6 +1,6 @@
 <?php
 	define('EXPECTED_CONFIG_VERSION', 26);
-	define('SCHEMA_VERSION', 121);
+	define('SCHEMA_VERSION', 122);
 
 	define('LABEL_BASE_INDEX', -1024);
 	define('PLUGIN_FEED_BASE_INDEX', -128);
@@ -87,6 +87,7 @@
 	require_once "lib/accept-to-gettext.php";
 	require_once "lib/gettext/gettext.inc";
 
+	require_once "lib/languagedetect/LanguageDetect.php";
 
 	function startup_gettext() {
 
@@ -1062,7 +1063,7 @@
 					$date_qpart = "date_entered < DATE_SUB(NOW(), INTERVAL 1 WEEK) ";
 				}
 				break;
-			case "2weeks":
+			case "2week":
 				if (DB_TYPE == "pgsql") {
 					$date_qpart = "date_entered < NOW() - INTERVAL '2 week' ";
 				} else {
@@ -2203,6 +2204,7 @@
 
 		$keywords = explode(" ", $search);
 		$query_keywords = array();
+		$search_words = array();
 
 		foreach ($keywords as $k) {
 			if (strpos($k, "-") === 0) {
@@ -2222,6 +2224,7 @@
 				} else {
 					array_push($query_keywords, "(UPPER(ttrss_entries.title) $not LIKE UPPER('%$k%')
 							OR UPPER(ttrss_entries.content) $not LIKE UPPER('%$k%'))");
+					array_push($search_words, $k);
 				}
 				break;
 			case "author":
@@ -2231,6 +2234,7 @@
 				} else {
 					array_push($query_keywords, "(UPPER(ttrss_entries.title) $not LIKE UPPER('%$k%')
 							OR UPPER(ttrss_entries.content) $not LIKE UPPER('%$k%'))");
+					array_push($search_words, $k);
 				}
 				break;
 			case "note":
@@ -2245,6 +2249,7 @@
 				} else {
 					array_push($query_keywords, "(UPPER(ttrss_entries.title) $not LIKE UPPER('%$k%')
 							OR UPPER(ttrss_entries.content) $not LIKE UPPER('%$k%'))");
+					if (!$not) array_push($search_words, $k);
 				}
 				break;
 			case "star":
@@ -2257,6 +2262,7 @@
 				} else {
 					array_push($query_keywords, "(UPPER(ttrss_entries.title) $not LIKE UPPER('%$k%')
 							OR UPPER(ttrss_entries.content) $not LIKE UPPER('%$k%'))");
+					if (!$not) array_push($search_words, $k);
 				}
 				break;
 			case "pub":
@@ -2269,6 +2275,7 @@
 				} else {
 					array_push($query_keywords, "(UPPER(ttrss_entries.title) $not LIKE UPPER('%$k%')
 							OR UPPER(ttrss_entries.content) $not LIKE UPPER('%$k%'))");
+					if (!$not) array_push($search_words, $k);
 				}
 				break;
 			default:
@@ -2284,13 +2291,15 @@
 				} else {
 					array_push($query_keywords, "(UPPER(ttrss_entries.title) $not LIKE UPPER('%$k%')
 							OR UPPER(ttrss_entries.content) $not LIKE UPPER('%$k%'))");
+
+					if (!$not) array_push($search_words, $k);
 				}
 			}
 		}
 
 		$search_query_part = implode("AND", $query_keywords);
 
-		return $search_query_part;
+		return array($search_query_part, $search_words);
 	}
 
 	function getParentCategories($cat, $owner_uid) {
@@ -2326,6 +2335,7 @@
 		if (!$owner_uid) $owner_uid = $_SESSION["uid"];
 
 		$ext_tables_part = "";
+		$search_words = array();
 
 			if ($search) {
 
@@ -2338,7 +2348,7 @@
 						$search_query_part = "ref_id = -1 AND ";
 
 				} else {
-					$search_query_part = search_to_sql($search);
+					list($search_query_part, $search_words) = search_to_sql($search);
 					$search_query_part .= " AND ";
 				}
 
@@ -2650,6 +2660,7 @@
 						comments,
 						int_id,
 						uuid,
+						lang,
 						hide_images,
 						unread,feed_id,marked,published,link,last_read,orig_feed_id,
 						last_marked, last_published,
@@ -2692,6 +2703,7 @@
 								"tag_cache," .
 								"label_cache," .
 								"link," .
+								"lang," .
 								"uuid," .
 								"last_read," .
 								"(SELECT hide_images FROM ttrss_feeds WHERE id = feed_id) AS hide_images," .
@@ -2744,17 +2756,14 @@
 				$result = db_query($select_qpart . $from_qpart . $where_qpart);
 			}
 
-			return array($result, $feed_title, $feed_site_url, $last_error, $last_updated);
+			return array($result, $feed_title, $feed_site_url, $last_error, $last_updated, $search_words);
 
 	}
 
-	function sanitize($str, $force_remove_images = false, $owner = false, $site_url = false) {
+	function sanitize($str, $force_remove_images = false, $owner = false, $site_url = false, $highlight_words = false) {
 		if (!$owner) $owner = $_SESSION["uid"];
 
 		$res = trim($str); if (!$res) return '';
-
-		if (strpos($res, "href=") === false)
-			$res = rewrite_urls($res);
 
 		$charset_hack = '<head>
 			<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
@@ -2849,7 +2858,39 @@
 
 		$doc->removeChild($doc->firstChild); //remove doctype
 		$doc = strip_harmful_tags($doc, $allowed_elements, $disallowed_attributes);
+
+		if ($highlight_words) {
+			foreach ($highlight_words as $word) {
+
+				// http://stackoverflow.com/questions/4081372/highlight-keywords-in-a-paragraph
+
+				$elements = $xpath->query("//*/text()");
+
+				foreach ($elements as $child) {
+
+					$fragment = $doc->createDocumentFragment();
+					$text = $child->textContent;
+					$stubs = array();
+
+					while (($pos = mb_stripos($text, $word)) !== false) {
+						$fragment->appendChild(new DomText(mb_substr($text, 0, $pos)));
+						$word = mb_substr($text, $pos, mb_strlen($word));
+						$highlight = $doc->createElement('span');
+						$highlight->appendChild(new DomText($word));
+						$highlight->setAttribute('class', 'highlight');
+						$fragment->appendChild($highlight);
+						$text = mb_substr($text, $pos + mb_strlen($word));
+					}
+
+					if (!empty($text)) $fragment->appendChild(new DomText($text));
+
+					$child->parentNode->replaceChild($fragment, $child);
+				}
+			}
+		}
+
 		$res = $doc->saveHTML();
+
 		return $res;
 	}
 
@@ -3118,7 +3159,7 @@
 			ccache_update($feed_id, $owner_uid);
 		}
 
-		$result = db_query("SELECT id,title,link,content,feed_id,comments,int_id,
+		$result = db_query("SELECT id,title,link,content,feed_id,comments,int_id,lang,
 			".SUBSTRING_FOR_DATE."(updated,1,16) as updated,
 			(SELECT site_url FROM ttrss_feeds WHERE id = feed_id) as site_url,
 			(SELECT hide_images FROM ttrss_feeds WHERE id = feed_id) as hide_images,
@@ -3201,7 +3242,8 @@
 			$parsed_updated = make_local_datetime($line["updated"], true,
 				$owner_uid, true);
 
-			$rv['content'] .= "<div class=\"postDate\">$parsed_updated</div>";
+			if (!$zoom_mode)
+				$rv['content'] .= "<div class=\"postDate\">$parsed_updated</div>";
 
 			if ($line["link"]) {
 				$rv['content'] .= "<div class='postTitle'><a target='_blank'
@@ -3213,6 +3255,9 @@
 			} else {
 				$rv['content'] .= "<div class='postTitle'>" . $line["title"] . "$entry_author</div>";
 			}
+
+			if ($zoom_mode)
+				$rv['content'] .= "<div class=\"postDate\">$parsed_updated</div>";
 
 			$tags_str = format_tags_string($line["tags"], $id);
 			$tags_str_full = join(", ", $line["tags"]);
@@ -3286,7 +3331,9 @@
 				}
 			$rv['content'] .= "</div>";
 
-			$rv['content'] .= "<div class=\"postContent\">";
+			if (!$line['lang']) $line['lang'] = 'en';
+
+			$rv['content'] .= "<div class=\"postContent\" lang=\"".$line['lang']."\">";
 
 			$rv['content'] .= $line["content"];
 			$rv['content'] .= format_article_enclosures($id,
@@ -3936,52 +3983,6 @@
 			print "</style>";
 		}
 
-	}
-
-	function rewrite_urls($html) {
-		libxml_use_internal_errors(true);
-
-		$charset_hack = '<head>
-			<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-		</head>';
-
-		$doc = new DOMDocument();
-		$doc->loadHTML($charset_hack . $html);
-		$xpath = new DOMXPath($doc);
-
-		$entries = $xpath->query('//*/text()');
-
-		foreach ($entries as $entry) {
-			if (strstr($entry->wholeText, "://") !== false) {
-				$text = preg_replace("/((?<!=.)((http|https|ftp)+):\/\/[^ ,!]+)/i",
-					"<a target=\"_blank\" href=\"\\1\">\\1</a>", $entry->wholeText);
-
-				if ($text != $entry->wholeText) {
-					$cdoc = new DOMDocument();
-					$cdoc->loadHTML($charset_hack . $text);
-
-
-					foreach ($cdoc->childNodes as $cnode) {
-						$cnode = $doc->importNode($cnode, true);
-
-						if ($cnode) {
-							$entry->parentNode->insertBefore($cnode);
-						}
-					}
-
-					$entry->parentNode->removeChild($entry);
-
-				}
-			}
-		}
-
-		$node = $doc->getElementsByTagName('body')->item(0);
-
-		// http://tt-rss.org/forum/viewtopic.php?f=1&t=970
-		if ($node)
-			return $doc->saveXML($node);
-		else
-			return $html;
 	}
 
 	function filter_to_sql($filter, $owner_uid) {

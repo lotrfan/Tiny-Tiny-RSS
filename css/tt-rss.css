@@ -382,7 +382,7 @@ span.hlLabelRef {
 
 div.postHeader div.postDate {
 	text-align : right;
-	color : #555;
+	color : #909090;
 	float : right;
 }
 
@@ -995,6 +995,9 @@ span.collapseBtn {
 div.postContent p {
 	max-width : 650px;
 	text-align : justify;
+	-webkit-hyphens: auto;
+	-moz-hyphens: auto;
+	hyphens: auto;
 }
 
 div.postContent iframe {
@@ -1011,13 +1014,28 @@ body#ttrssZoom {
 	margin-left : auto;
 	margin-right : auto;
 	padding : 20px;
-	max-width : 800px;
+	max-width : 670px;
 	background : #f9fbff;
+}
+
+body#ttrssZoom div.postHeader div.postDate {
+	float : none;
+	text-align : left;
+	padding-left : 0px;
+	color : #777;
+	font-size : 10px;
+}
+
+body#ttrssZoom div.postHeader div.postTitle {
+	white-space : normal;
 }
 
 body#ttrssZoom div.postContent p {
 	max-width : 650px;
 	text-align : justify;
+	-webkit-hyphens: auto;
+	-moz-hyphens: auto;
+	hyphens: auto;
 }
 
 body#ttrssZoom div.postHeader {
@@ -1153,4 +1171,9 @@ body#ttrssPrefs hr {
 #feedTree img[src*='indicator_white.gif'] {
 	position : relative;
 	top : -2px;
+}
+
+span.highlight {
+	background-color : #ffff00;
+	color : #cc90cc;
 }
