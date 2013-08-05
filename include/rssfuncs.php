@@ -574,9 +574,11 @@
 
 				if (count($entry_language) > 0) {
 					$entry_language = array_keys($entry_language);
-					$entry_language = db_escape_string($entry_language[0]);
+					$entry_language = db_escape_string(substr($entry_language[0], 0, 2));
 
 					_debug("detected language: $entry_language", $debug_enabled);
+				} else{
+					$entry_language = "";
 				}
 
 				$entry_comments = $item->get_comments_url();
@@ -952,7 +954,7 @@
 				if (is_array($encs)) {
 					foreach ($encs as $e) {
 						$e_item = array(
-							$e->link, $e->type, $e->length);
+							$e->link, $e->type, $e->length, $e->title);
 						array_push($enclosures, $e_item);
 					}
 				}
@@ -964,10 +966,14 @@
 
 				db_query("BEGIN");
 
+//				debugging
+//				db_query("DELETE FROM ttrss_enclosures WHERE post_id = '$entry_ref_id'");
+
 				foreach ($enclosures as $enc) {
 					$enc_url = db_escape_string($enc[0]);
 					$enc_type = db_escape_string($enc[1]);
 					$enc_dur = db_escape_string($enc[2]);
+					$enc_title = db_escape_string($enc[3]);
 
 					$result = db_query("SELECT id FROM ttrss_enclosures
 						WHERE content_url = '$enc_url' AND post_id = '$entry_ref_id'");
@@ -975,7 +981,7 @@
 					if (db_num_rows($result) == 0) {
 						db_query("INSERT INTO ttrss_enclosures
 							(content_url, content_type, title, duration, post_id) VALUES
-							('$enc_url', '$enc_type', '', '$enc_dur', '$entry_ref_id')");
+							('$enc_url', '$enc_type', '$enc_title', '$enc_dur', '$entry_ref_id')");
 					}
 				}
 
@@ -1132,16 +1138,15 @@
 					}
 				}
 
-				if (file_exists($local_filename)) {
+				/* if (file_exists($local_filename)) {
 					$entry->setAttribute('src', SELF_URL_PATH . '/image.php?url=' .
 						base64_encode($src));
-				}
+				} */
 			}
 		}
 
-		$node = $doc->getElementsByTagName('body')->item(0);
-
-		return $doc->saveXML($node);
+		//$node = $doc->getElementsByTagName('body')->item(0);
+		//return $doc->saveXML($node);
 	}
 
 	function expire_error_log($debug) {
@@ -1379,5 +1384,8 @@
 		$rc = cleanup_tags( 14, 50000);
 
 		_debug("Cleaned $rc cached tags.");
+
+		PluginHost::getInstance()->run_hooks(PluginHost::HOOK_HOUSE_KEEPING, "hook_house_keeping", "");
+
 	}
 ?>

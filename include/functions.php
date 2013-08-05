@@ -2760,7 +2760,7 @@
 
 	}
 
-	function sanitize($str, $force_remove_images = false, $owner = false, $site_url = false, $highlight_words = false) {
+	function sanitize($str, $force_remove_images = false, $owner = false, $site_url = false, $highlight_words = false, $article_id = false) {
 		if (!$owner) $owner = $_SESSION["uid"];
 
 		$res = trim($str); if (!$res) return '';
@@ -2846,7 +2846,7 @@
 		$disallowed_attributes = array('id', 'style', 'class');
 
 		foreach (PluginHost::getInstance()->get_hooks(PluginHost::HOOK_SANITIZE) as $plugin) {
-			$retval = $plugin->hook_sanitize($doc, $site_url, $allowed_elements, $disallowed_attributes);
+			$retval = $plugin->hook_sanitize($doc, $site_url, $allowed_elements, $disallowed_attributes, $article_id);
 			if (is_array($retval)) {
 				$doc = $retval[0];
 				$allowed_elements = $retval[1];
@@ -3183,7 +3183,7 @@
 
 			$line["content"] = sanitize($line["content"],
 				sql_bool_to_bool($line['hide_images']),
-				$owner_uid, $line["site_url"]);
+				$owner_uid, $line["site_url"], false, $line["id"]);
 
 			foreach (PluginHost::getInstance()->get_hooks(PluginHost::HOOK_RENDER_ARTICLE) as $p) {
 				$line = $p->hook_render_article($line);
@@ -3776,6 +3776,7 @@
 
 				$url = $line["content_url"];
 				$ctype = $line["content_type"];
+				$title = $line["title"];
 
 				if (!$ctype) $ctype = __("unknown type");
 
@@ -3798,6 +3799,7 @@
 				$entry["type"] = $ctype;
 				$entry["filename"] = $filename;
 				$entry["url"] = $url;
+				$entry["title"] = $title;
 
 				array_push($entries, $entry);
 			}
@@ -3819,7 +3821,10 @@
 									$rv .= "<p><a target=\"_blank\"
 									href=\"".htmlspecialchars($entry["url"])."\"
 									>" .htmlspecialchars($entry["url"]) . "</a></p>";
+								}
 
+								if ($entry['title']) {
+									$rv.= "<div class=\"enclosure_title\">${entry['title']}</div>";
 								}
 						}
 					}
@@ -3836,7 +3841,12 @@
 				"<option value=''>" . __('Attachments')."</option>";
 
 			foreach ($entries as $entry) {
-				$rv .= "<option value=\"".htmlspecialchars($entry["url"])."\">" . htmlspecialchars($entry["filename"]) . "</option>";
+				if ($entry["title"])
+					$title = "&mdash; " . truncate_string($entry["title"], 30);
+				else
+					$title = "";
+
+				$rv .= "<option value=\"".htmlspecialchars($entry["url"])."\">" . htmlspecialchars($entry["filename"]) . "$title</option>";
 
 			};
 
