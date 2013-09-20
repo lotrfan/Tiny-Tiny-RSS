@@ -175,6 +175,7 @@
 				while ($tline = db_fetch_assoc($tmp_result)) {
 					if($debug) _debug(" => " . $tline["last_updated"] . ", " . $tline["id"] . " " . $tline["owner_uid"]);
 					update_rss_feed($tline["id"], true);
+					_debug_suppress(false);
 					++$nf;
 				}
 			}
@@ -194,6 +195,7 @@
 
 		$debug_enabled = defined('DAEMON_EXTENDED_DEBUG') || $_REQUEST['xdebug'];
 
+		_debug_suppress(!$debug_enabled);
 		_debug("start", $debug_enabled);
 
 		$result = db_query("SELECT id,update_interval,auth_login,
@@ -570,7 +572,7 @@
 					print "\n";
 				}
 
-				$entry_language = $lang->detect($entry_content, 1);
+				$entry_language = $lang->detect($entry_title . " " . $entry_content, 1);
 
 				if (count($entry_language) > 0) {
 					$entry_language = array_keys($entry_language);
@@ -644,7 +646,11 @@
 					"tags" => $entry_tags,
 					"plugin_data" => $entry_plugin_data,
 					"author" => $entry_author,
-					"stored" => $stored_article);
+					"stored" => $stored_article,
+					"feed" => array("id" => $feed,
+						"fetch_url" => $fetch_url,
+						"site_url" => $site_url)
+					);
 
 				foreach ($pluginhost->get_hooks(PluginHost::HOOK_ARTICLE_FILTER) as $plugin) {
 					$article = $plugin->hook_article_filter($article);

@@ -1,6 +1,6 @@
 <?php
 	define('EXPECTED_CONFIG_VERSION', 26);
-	define('SCHEMA_VERSION', 122);
+	define('SCHEMA_VERSION', 123);
 
 	define('LABEL_BASE_INDEX', -1024);
 	define('PLUGIN_FEED_BASE_INDEX', -128);
@@ -11,6 +11,7 @@
 	$fetch_last_error_code = false;
 	$fetch_last_content_type = false;
 	$fetch_curl_used = false;
+	$suppress_debugging = false;
 
 	mb_internal_encoding("UTF-8");
 	date_default_timezone_set('UTC');
@@ -132,6 +133,12 @@
 
 	$schema_version = false;
 
+	function _debug_suppress($suppress) {
+		global $suppress_debugging;
+
+		$suppress_debugging = $suppress;
+	}
+
 	/**
 	 * Print a timestamped debug message.
 	 *
@@ -139,6 +146,11 @@
 	 * @return void
 	 */
 	function _debug($msg, $show = true) {
+		global $suppress_debugging;
+
+		//echo "[$suppress_debugging] $msg $show\n";
+
+		if ($suppress_debugging) return false;
 
 		$ts = strftime("%H:%M:%S", time());
 		if (function_exists('posix_getpid')) {
@@ -153,7 +165,29 @@
 			$fp = fopen(LOGFILE, 'a+');
 
 			if ($fp) {
+				$locked = false;
+
+				if (function_exists("flock")) {
+					$tries = 0;
+
+					// try to lock logfile for writing
+					while ($tries < 5 && !$locked = flock($fp, LOCK_EX | LOCK_NB)) {
+						sleep(1);
+						++$tries;
+					}
+
+					if (!$locked) {
+						fclose($fp);
+						return;
+					}
+				}
+
 				fputs($fp, "[$ts] $msg\n");
+
+				if (function_exists("flock")) {
+					flock($fp, LOCK_UN);
+				}
+
 				fclose($fp);
 			}
 		}
@@ -1523,13 +1557,10 @@
 
 		$owner_uid = $_SESSION["uid"];
 
-		$result = db_query("SELECT id,caption,COUNT(u1.unread) AS unread,COUNT(u2.unread) AS total
+		$result = db_query("SELECT id,caption,SUM(CASE WHEN u1.unread = true THEN 1 ELSE 0 END) AS unread, COUNT(u1.unread) AS total
 			FROM ttrss_labels2 LEFT JOIN ttrss_user_labels2 ON
 				(ttrss_labels2.id = label_id)
-				LEFT JOIN ttrss_user_entries AS u1 ON (u1.ref_id = article_id AND u1.unread = true
-					AND u1.owner_uid = $owner_uid)
-				LEFT JOIN ttrss_user_entries AS u2 ON (u2.ref_id = article_id AND u2.unread = false
-					AND u2.owner_uid = $owner_uid)
+				LEFT JOIN ttrss_user_entries AS u1 ON u1.ref_id = article_id
 				WHERE ttrss_labels2.owner_uid = $owner_uid GROUP BY ttrss_labels2.id,
 					ttrss_labels2.caption");
 
@@ -3039,10 +3070,6 @@
 		if (preg_match("/^[0-9]*$/", $tag)) return false;
 		if (mb_strlen($tag) > 250) return false;
 
-		if (function_exists('iconv')) {
-			$tag = iconv("utf-8", "utf-8", $tag);
-		}
-
 		if (!$tag) return false;
 
 		return true;
@@ -3162,6 +3189,7 @@
 		$result = db_query("SELECT id,title,link,content,feed_id,comments,int_id,lang,
 			".SUBSTRING_FOR_DATE."(updated,1,16) as updated,
 			(SELECT site_url FROM ttrss_feeds WHERE id = feed_id) as site_url,
+			(SELECT title FROM ttrss_feeds WHERE id = feed_id) as feed_title,
 			(SELECT hide_images FROM ttrss_feeds WHERE id = feed_id) as hide_images,
 			(SELECT always_display_enclosures FROM ttrss_feeds WHERE id = feed_id) as always_display_enclosures,
 			num_comments,
@@ -3198,10 +3226,13 @@
 				} else {
 					$comments_url = htmlspecialchars($line["link"]);
 				}
-				$entry_comments = "<a target='_blank' href=\"$comments_url\">$num_comments comments</a>";
+				$entry_comments = "<a class=\"postComments\"
+					target='_blank' href=\"$comments_url\">$num_comments ".
+					_ngettext("comment", "comments", $num_comments)."</a>";
+
 			} else {
 				if ($line["comments"] && $line["link"] != $line["comments"]) {
-					$entry_comments = "<a target='_blank' href=\"".htmlspecialchars($line["comments"])."\">comments</a>";
+					$entry_comments = "<a class=\"postComments\" target='_blank' href=\"".htmlspecialchars($line["comments"])."\">".__("comments")."</a>";
 				}
 			}
 
@@ -3256,8 +3287,15 @@
 				$rv['content'] .= "<div class='postTitle'>" . $line["title"] . "$entry_author</div>";
 			}
 
-			if ($zoom_mode)
+			if ($zoom_mode) {
+				$feed_title = "<a href=\"".htmlspecialchars($line["site_url"]).
+					"\" target=\"_blank\">".
+					htmlspecialchars($line["feed_title"])."</a>";
+
+				$rv['content'] .= "<div class=\"postFeedTitle\">$feed_title</div>";
+
 				$rv['content'] .= "<div class=\"postDate\">$parsed_updated</div>";
+			}
 
 			$tags_str = format_tags_string($line["tags"], $id);
 			$tags_str_full = join(", ", $line["tags"]);
@@ -3415,6 +3453,11 @@
 
 		$cat_id = (int)getFeedCategory($feed_id);
 
+		if ($cat_id == 0)
+			$null_cat_qpart = "cat_id IS NULL OR";
+		else
+			$null_cat_qpart = "";
+
 		$result = db_query("SELECT * FROM ttrss_filters2 WHERE
 			owner_uid = $owner_uid AND enabled = true ORDER BY order_id, title");
 
@@ -3430,7 +3473,7 @@
 				FROM ttrss_filters2_rules AS r,
 				ttrss_filter_types AS t
 				WHERE
-					(cat_id IS NULL OR cat_id IN ($check_cats)) AND
+					($null_cat_qpart (cat_id IS NULL AND cat_filter = false) OR cat_id IN ($check_cats)) AND
 					(feed_id IS NULL OR feed_id = '$feed_id') AND
 					filter_type = t.id AND filter_id = '$filter_id'");
 
@@ -4061,6 +4104,8 @@
 
 					$qpart .= " AND $cat_qpart";
 				}
+
+				$qpart .= " AND feed_id IS NOT NULL";
 
 				array_push($query, "($qpart)");
 
