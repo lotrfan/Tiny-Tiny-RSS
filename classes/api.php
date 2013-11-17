@@ -202,6 +202,9 @@ class API extends Handler {
 
 			$override_order = false;
 			switch ($_REQUEST["order_by"]) {
+				case "title":
+					$override_order = "ttrss_entries.title";
+					break;
 				case "date_reverse":
 					$override_order = "score DESC, date_entered, updated";
 					break;
@@ -447,7 +450,7 @@ class API extends Handler {
 		$assign = (bool) $this->dbh->escape_string($_REQUEST['assign']) == "true";
 
 		$label = $this->dbh->escape_string(label_find_caption(
-			$label_id, $_SESSION["uid"]));
+			feed_to_label_id($label_id), $_SESSION["uid"]));
 
 		$num_updated = 0;
 

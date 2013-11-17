@@ -379,6 +379,14 @@
 			curl_setopt($ch, CURLOPT_ENCODING, "");
 			curl_setopt($ch, CURLOPT_REFERER, $url);
 
+			if (!ini_get("safe_mode") && !ini_get("open_basedir")) {
+				curl_setopt($ch, CURLOPT_COOKIEJAR, "/dev/null");
+			}
+
+			if (defined('_CURL_HTTP_PROXY')) {
+				curl_setopt($ch, CURLOPT_PROXY, _CURL_HTTP_PROXY);
+			}
+
 			if ($post_query) {
 				curl_setopt($ch, CURLOPT_POST, true);
 				curl_setopt($ch, CURLOPT_POSTFIELDS, $post_query);
@@ -799,7 +807,7 @@
 	}
 
 	function load_user_plugins($owner_uid) {
-		if ($owner_uid) {
+		if ($owner_uid && SCHEMA_VERSION >= 100) {
 			$plugins = get_pref("_ENABLED_PLUGINS", $owner_uid);
 
 			PluginHost::getInstance()->load($plugins, PluginHost::KIND_USER, $owner_uid);
@@ -814,6 +822,7 @@
 		if (SINGLE_USER_MODE) {
 			@session_start();
 			authenticate_user("admin", null);
+			startup_gettext();
 			load_user_plugins($_SESSION["uid"]);
 		} else {
 			if (!validate_session()) $_SESSION["uid"] = false;
@@ -1135,8 +1144,8 @@
 
 						db_query("UPDATE ttrss_user_entries
 							SET unread = false,last_read = NOW() WHERE (SELECT COUNT(*)
-								FROM ttrss_user_labels2 WHERE article_id = ref_id) > 0
-								AND unread = true AND $date_qpart AND owner_uid = $owner_uid");
+								FROM ttrss_user_labels2, ttrss_entries WHERE article_id = ref_id AND id = ref_id AND $date_qpart) > 0
+								AND unread = true AND owner_uid = $owner_uid");
 					}
 
 				} else if ($feed > 0) {
@@ -1417,9 +1426,9 @@
 			$intl = get_pref("FRESH_ARTICLE_MAX_AGE", $owner_uid);
 
 			if (DB_TYPE == "pgsql") {
-				$match_part .= " AND updated > NOW() - INTERVAL '$intl hour' ";
+				$match_part .= " AND date_entered > NOW() - INTERVAL '$intl hour' ";
 			} else {
-				$match_part .= " AND updated > DATE_SUB(NOW(), INTERVAL $intl HOUR) ";
+				$match_part .= " AND date_entered > DATE_SUB(NOW(), INTERVAL $intl HOUR) ";
 			}
 
 			$need_entries = true;
@@ -1449,6 +1458,7 @@
 				$from_where = "ttrss_entries.id = ttrss_user_entries.ref_id AND";
 			} else {
 				$from_qpart = "ttrss_user_entries";
+				$from_where = "";
 			}
 
 			$query = "SELECT count(int_id) AS unread
@@ -2233,7 +2243,7 @@
 
 		$search_query_part = "";
 
-		$keywords = explode(" ", $search);
+		$keywords = str_getcsv($search, " ");
 		$query_keywords = array();
 		$search_words = array();
 
@@ -3242,6 +3252,9 @@
 						<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/>
 						<title>Tiny Tiny RSS - ".$line["title"]."</title>
 						<link rel=\"stylesheet\" type=\"text/css\" href=\"css/tt-rss.css\">
+						<link rel=\"shortcut icon\" type=\"image/png\" href=\"images/favicon.png\">
+						<link rel=\"icon\" type=\"image/png\" sizes=\"72x72\" href=\"images/favicon-72px.png\">
+
 						<script type=\"text/javascript\">
 						function openSelectedAttachment(elem) {
 							try {
@@ -4212,6 +4225,10 @@
 		//curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true); //CURLOPT_FOLLOWLOCATION Disabled...
 		curl_setopt($curl, CURLOPT_TIMEOUT, 60);
 		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+
+		if (defined('_CURL_HTTP_PROXY')) {
+			curl_setopt($curl, CURLOPT_PROXY, _CURL_HTTP_PROXY);
+		}
 
 		if ((OPENSSL_VERSION_NUMBER >= 0x0090808f) && (OPENSSL_VERSION_NUMBER < 0x10000000)) {
 			curl_setopt($curl, CURLOPT_SSLVERSION, 3);
