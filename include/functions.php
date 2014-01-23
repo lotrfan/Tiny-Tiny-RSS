@@ -80,7 +80,8 @@
 					"pt_BR" => "Portuguese/Brazil",
 					"zh_CN" => "Simplified Chinese",
 					"sv_SE" => "Svenska",
-					"fi_FI" => "Suomi");
+					"fi_FI" => "Suomi",
+					"tr_TR" => "Türkçe");
 
 		return $tr;
 	}
@@ -691,6 +692,12 @@
 				$_SERVER["REDIRECT_SSL_CLIENT_V_END"] .
 				$_SERVER["REDIRECT_SSL_CLIENT_S_DN"]);
 		}
+		if ($_SERVER["SSL_CLIENT_M_SERIAL"]) {
+			return sha1($_SERVER["SSL_CLIENT_M_SERIAL"] .
+				$_SERVER["SSL_CLIENT_V_START"] .
+				$_SERVER["SSL_CLIENT_V_END"] .
+				$_SERVER["SSL_CLIENT_S_DN"]);
+		}
 		return "";
 	}
 
@@ -720,7 +727,7 @@
 
 				$_SESSION["name"] = db_fetch_result($result, 0, "login");
 				$_SESSION["access_level"] = db_fetch_result($result, 0, "access_level");
-				$_SESSION["csrf_token"] = sha1(uniqid(rand(), true));
+				$_SESSION["csrf_token"] = uniqid(rand(), true);
 
 				db_query("UPDATE ttrss_users SET last_login = NOW() WHERE id = " .
 					$_SESSION["uid"]);
@@ -750,7 +757,7 @@
 			$_SESSION["auth_module"] = false;
 
 			if (!$_SESSION["csrf_token"]) {
-				$_SESSION["csrf_token"] = sha1(uniqid(rand(), true));
+				$_SESSION["csrf_token"] = uniqid(rand(), true);
 			}
 
 			$_SESSION["ip_address"] = $_SERVER["REMOTE_ADDR"];
@@ -2651,7 +2658,7 @@
 			}
 
 
-			$content_query_part = "content, content AS content_preview, ";
+			$content_query_part = "content, ";
 
 
 			if (is_numeric($feed)) {
@@ -2824,9 +2831,12 @@
 
 			if ($site_url) {
 
-				if ($entry->hasAttribute('href'))
+				if ($entry->hasAttribute('href')) {
 					$entry->setAttribute('href',
 						rewrite_relative_url($site_url, $entry->getAttribute('href')));
+
+					$entry->setAttribute('rel', 'noreferrer');
+				}
 
 				if ($entry->hasAttribute('src')) {
 					$src = rewrite_relative_url($site_url, $entry->getAttribute('src'));
@@ -3746,7 +3756,7 @@
 		if (db_num_rows($result) == 1) {
 			return db_fetch_result($result, 0, "access_key");
 		} else {
-			$key = db_escape_string(sha1(uniqid(rand(), true)));
+			$key = db_escape_string(uniqid(base_convert(rand(), 10, 36)));
 
 			$result = db_query("INSERT INTO ttrss_access_keys
 				(access_key, feed_id, is_cat, owner_uid)
