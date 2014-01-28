@@ -25,9 +25,8 @@ div.postReply div.postHeader {
 	padding : 5px;
 	margin-right : 4px;
 	color : #909090;
-	background : #f5f5f5;
-	border-width : 1px;
-	border-color : #eee;
+	border-width : 0px 0px 1px 0px;
+	border-color : #ddd;
 	border-style : solid;
 }
 
@@ -35,6 +34,11 @@ div.postReply div.postTitle {
 	overflow : hidden;
 	text-overflow: ellipsis;
 	white-space : nowrap;
+	font-weight : 600;
+	text-rendering: optimizelegibility;
+	font-family : "Segoe WP Semibold", "Segoe UI Semibold", 
+		"Segoe UI Web Semibold", "Segoe UI", "Helvetica Neue",
+		Helvetica, Arial, sans-serif;
 }
 
 div.postReply div.postDate {
@@ -85,22 +89,35 @@ div.postReply span.author {
 
 h1 {
 	font-size : 18px;
+	font-weight : 600;
+	text-rendering: optimizelegibility;
+	font-family : "Segoe WP Semibold", "Segoe UI Semibold", 
+		"Segoe UI Web Semibold", "Segoe UI", "Helvetica Neue",
+		Helvetica, Arial, sans-serif;
 }
 
 h2 {
 	font-size : 16px;
-	font-weight : bold;
+	font-weight : 600;
 	border-width : 0px 0px 1px 0px;
 	border-style : solid;
 	border-color : #ecf4ff;
+	text-rendering: optimizelegibility;
+	font-family : "Segoe WP Semibold", "Segoe UI Semibold", 
+		"Segoe UI Web Semibold", "Segoe UI", "Helvetica Neue",
+		Helvetica, Arial, sans-serif;
 }
 
 h3 {
 	font-size : 12px;
-	font-weight : bold;
 	border-width : 0px 0px 1px 0px;
 	border-style : solid;
 	border-color : #ecf4ff;
+	font-weight : 600;
+	text-rendering: optimizelegibility;
+	font-family : "Segoe WP Semibold", "Segoe UI Semibold", 
+		"Segoe UI Web Semibold", "Segoe UI", "Helvetica Neue",
+		Helvetica, Arial, sans-serif;
 }
 
 hr {
@@ -177,7 +194,11 @@ a:hover {
 }
 
 .hl div.hlTitle a {
-	font-weight : bold;
+	font-weight : 600;
+	text-rendering: optimizelegibility;
+	font-family : "Segoe WP Semibold", "Segoe UI Semibold", 
+		"Segoe UI Web Semibold", "Segoe UI", "Helvetica Neue",
+		Helvetica, Arial, sans-serif;
 	color : #777;
 }
 
@@ -201,7 +222,8 @@ a:hover {
 .hl {
 	border-width : 0px 0px 1px 0px;
 	border-style : solid;
-	border-color : #eee;
+	border-color : #ddd;
+	padding : 1px;
 }
 
 .hl.active {
@@ -211,7 +233,7 @@ a:hover {
 div.filterTestHolder {
 	height : 300px;
 	overflow : auto;
-	border-color : #eee;
+	border-color : #ddd;
 	border-style : solid;
 	margin : 0px 0px 5px 0px;
 	background-color : #f5f5f5;
@@ -308,7 +330,17 @@ div.prefHelp {
 	white-space : nowrap;
 	display : table-cell;
 	color : #999;
-	font-family : "Segoe UI", Tahoma, sans-serif;
+}
+
+#main-toolbar > *,
+#main-toolbar table *,
+#main-toolbar .actionChooser * {
+	text-rendering: optimizelegibility;
+	font-family : "Segoe WP Semibold", "Segoe UI Semibold", 
+		"Segoe UI Web Semibold", "Segoe UI", "Helvetica Neue",
+		Helvetica, Arial, sans-serif;
+	font-size : 12px;
+
 }
 
 #main-toolbar #headlines-toolbar {
@@ -327,6 +359,11 @@ div.prefHelp {
 
 #main-toolbar #headlines-toolbar .main {
 	text-align : right;
+}
+
+#main-toolbar #headlines-toolbar .main,
+#main-toolbar #headlines-toolbar .r {
+	line-height : 24px;
 }
 
 #headlines-toolbar span.r img {
@@ -350,6 +387,7 @@ span.contentPreview {
 	font-weight : normal;
 	text-shadow : 1px 1px 2px #fff;
 	font-size : 11px;
+	padding-left : 4px;
 }
 
 span.hlLabelRef {
@@ -382,26 +420,9 @@ div.postHeader div {
 #allEntryTags {
 	border-width : 0px 0px 1px 0px;
 	border-style : solid;
-	border-color : #eee;
+	border-color : #ddd;
 	padding-bottom : 5px;
 	display : none;
-}
-
-a.hlFeed {
-	display : block;
-	white-space : nowrap;
-	font-size : 9px;
-	font-style : italic;
-	font-weight : normal;
-	display : inline-block;
-	padding : 1px 2px 1px 2px;
-	margin-bottom : 2px;
-	margin-top : 2px;
-	color : #555;
-}
-
-a.hlFeed:hover {
-	color : #4684ff;
 }
 
 img.markedPic, img.pubPic {
@@ -421,7 +442,7 @@ img[src*='pub_set.png'], img[src*='mark_set.png'] {
 }
 
 div.tagCloudContainer {
-	border : 1px solid #eee;
+	border : 1px solid #ddd;
 	background-color : #f5f5f5;
 	margin : 5px 0px 5px 0px;
 	padding : 5px;
@@ -429,7 +450,7 @@ div.tagCloudContainer {
 }
 
 div.errorExplained {
-	border : 1px solid #eee;
+	border : 1px solid #ddd;
 	background-color : #f5f5f5;
 	margin : 5px 0px 5px 0px;
 	padding : 5px;
@@ -439,7 +460,7 @@ ul.feedErrorsList {
 	max-height : 300px;
 	overflow : auto;
 	list-style-type : none;
-	border : 1px solid #eee;
+	border : 1px solid #ddd;
 	background-color : #f5f5f5;
 	margin : 0px 0px 5px 0px;
 	padding : 5px;
@@ -453,7 +474,7 @@ ul.browseFeedList {
 	height : 300px;
 	overflow : auto;
 	border-width : 0px 1px 1px 1px;
-	border-color : #eee;
+	border-color : #ddd;
 	border-style : solid;
 	margin : 0px 0px 5px 0px;
 	background-color : white;
@@ -557,11 +578,13 @@ div.autocomplete ul li {
 	cursor : pointer;
 }
 
-.hlTitle {
+.hl .hlTitle {
 	overflow : hidden;
 	white-space : nowrap;
 	max-width : 500px;
 	text-overflow : ellipsis;
+	padding-left : 6px;
+	padding-right : 6px;
 }
 
 div#headlines-frame.wide .hlTitle {
@@ -683,14 +706,39 @@ div.hlRight img {
 	max-height : 16px;
 }
 
-span.hlUpdated {
-	color : #555;
-	min-width : 100px;
+.hl span.hlFeed {
 	display : table-cell;
-	width : 100%;
 	vertical-align : middle;
 	text-align : right;
-	font-size : 10px;
+}
+
+.hl span.hlFeed a {
+	border-radius : 4px;
+	display : inline-block;
+	padding : 1px 4px 1px 4px;
+	font-size : 11px;
+	font-style : italic;
+	font-weight : normal;
+	color : #555;
+	white-space : nowrap;
+}
+
+.hl span.hlFeed a:hover {
+	color : #4684ff;
+}
+
+.hl span.hlUpdated {
+	color : #555;
+	display : table-cell;
+	vertical-align : middle;
+	text-align : right;
+	font-size : 11px;
+	white-space : nowrap;
+	padding-left : 10px;
+}
+
+span.hlUpdated div {
+	display : inline-block;
 }
 
 div.hlLeft {
@@ -739,8 +787,6 @@ div.fatalError textarea {
 #content-wrap {
 	padding : 0px;
 	border-width : 0px;
-	border-style : solid;
-  	border-color : #eee;
 	margin : 0px;
 }
 
@@ -748,7 +794,7 @@ div.fatalError textarea {
 	padding : 0px;
 	border-width : 0px 1px 0px 0px;
 	border-style : solid;
-  	border-color : #eee;
+  	border-color : #ddd;
 	overflow : hidden;
 	background : #f5f5f5;
 }
@@ -761,8 +807,6 @@ div.fatalError textarea {
 
 #headlines-frame {
 	padding : 0px;
-	border-color : #eee;
-	border-style : solid;
 	border-width : 0px;
 	margin-top : 0px;
 }
@@ -782,7 +826,7 @@ div.fatalError textarea {
 #main-toolbar {
 	background : white;
 	border-width : 0px 0px 1px 0px;
-	border-color : #eee;
+	border-color : #ddd;
 	border-style : solid;
 	padding-left : 4px;
 	height : 26px;
@@ -810,7 +854,7 @@ div.fatalError textarea {
 
 #content-insert {
 	padding : 0px;
-	border-color : #eee;
+	border-color : #ddd;
 	border-width : 0px;
 	line-height: 20px;
 	overflow : auto;
@@ -824,57 +868,12 @@ div.fatalError textarea {
 	color : red;
 }
 
-.claro .dijitTreeLabel {
-	outline : 0;
-}
-
-.feedParam {
-	color : #555;
-	float : right;
-	margin-right : 1em;
-}
-
-.labelParam {
-	float : right;
-	margin-right : 1em;
-}
-
-.dijitTreeLabel.Disabled, .labelParam.Disabled {
-	color : #555;
-}
-
-.dijitTreeRow.Error {
-	color : red;
-}
-
-.dijitTreeRow.Hidden {
-	display : none;
-}
-
 img.feedIcon, img.tinyFeedIcon {
 	width : 16px;
 	height : 16px;
 	line-height : 16px;
 	vertical-align : middle;
 	display : inline-block;
-}
-
-.dijitToolbar {
-	text-shadow : 1px 1px 2px #fff;
-}
-
-.dijitAccordionTitleFocus {
-	text-shadow : 1px 1px 2px #fff;
-}
-
-.claro .dijitDialog .dijitToolbar {
-	border : 1px solid #eee;
-}
-
-.dijitDialog h2 {
-	margin-top : 0px;
-	margin-bottom : 4px;
-	border-width : 0px;
 }
 
 .player {
@@ -914,7 +913,7 @@ ul#filterDlg_Matches, ul#filterDlg_Actions {
 	overflow : auto;
 	list-style-type : none;
 	border-style : solid;
-  	border-color : #eee;
+  	border-color : #ddd;
 	border-width : 0px 1px 1px 1px;
 	background-color : white;
 	margin : 0px 0px 5px 0px;
@@ -926,15 +925,11 @@ ul#filterDlg_Matches li, ul#filterDlg_Actions li {
 	padding : 0px 0px 0px 5px;
 }
 
-ul#filterDlg_Matches li div.dijitCheckBox, ul#filterDlg_Actions li div.dijitCheckBox {
-	margin-right : 5px;
-}
-
 ul.helpKbList {
 	max-height : 300px;
 	overflow : auto;
 	list-style-type : none;
-	border : 1px solid #eee;
+	border : 1px solid #ddd;
 	background-color : #f5f5f5;
 	margin : 0px 0px 5px 0px;
 	padding : 5px;
@@ -952,13 +947,17 @@ ul.helpKbList h2 {
 	margin-top : 0px;
 }
 
-.dijitTreeNode .loadingNode {
-	margin-left : 3px;
-	height : 9px;
-}
-
 span.collapseBtn {
 	cursor : pointer;
+}
+
+div.postContent h1 {
+	font-size : 16px;
+}
+
+div.postContent h2,
+div.postContent h3 {
+	font-size : 14px;
 }
 
 div.postContent p {
@@ -1000,37 +999,17 @@ body#ttrssMain #feedTree .dijitTreeRow {
 	color : #333;
 }
 
-.claro .dijitTreeRow {
-	border-color : transparent;
-}
-
-.claro .dijitFolderClosed,
-.claro .dijitFolderOpened {
-	display : none;
-}
-
-.claro .dijitTreeNode .dijitCheckBox {
-	margin-left : 4px;
-}
-
-.claro .dijitTreeIsRoot > .dijitTreeRow > .dijitTreeExpando {
-	margin-left : 5px;
-}
-
-.claro .dijitTree .dijitTreeExpando {
-	margin-top : 0px;
-	opacity : 0.6;
-}
-
-.claro .dijitTreeNode {
-	padding : 0px;
-	border-width : 0px;
+ul#filterDlg_Matches li div.dijitCheckBox, ul#filterDlg_Actions li div.dijitCheckBox {
+	margin-right : 5px;
 }
 
 body#ttrssMain #feedTree { 
 	height : 100%;
 	overflow-x : hidden;
-	font-family : "Segoe UI", Tahoma, sans-serif;
+	text-rendering: optimizelegibility;
+	font-family : "Segoe WP Semibold", "Segoe UI Semibold", 
+		"Segoe UI Web Semibold", "Segoe UI", "Helvetica Neue",
+		Helvetica, Arial, sans-serif;
 }
 
 body#ttrssMain #feedTree .counterNode.aux {
@@ -1058,50 +1037,6 @@ body#ttrssMain #feedTree .counterNode {
 	height : 14px;
 }
 
-.claro .dijitTree .dijitTreeRow {
-	max-width: 100%;
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-
-body#ttrssPrefs hr {
-	border-color : #ecf4ff;
-	max-width : 100%;
-}
-
-.claro .dijitMenuItemLabel {
-	font-size : 13px;
-}
-
-.claro .dijitTree .dijitTreeRowSelected {
-	background : white;
-}
-
-.claro .dijitTree .dijitTreeRowHover {
-	background : #ecf4ff;
-}
-
-.claro .dijitTree .dijitTreeRowActive {
-	background-color : transparent;
-	background-image : none;
-	border-color : transparent;
-}
-
-.claro .dijitTreeRowSelected .dijitTreeLabel,
-.claro .dijitTreeRowSelected .dijitTreeLabel {
-	color : #4684ff;
-	font-weight : bold;
-}
-
-.claro .dijitTreeRowHover .dijitTreeLabel,
-.claro .dijitTreeRowHover .dijitTreeLabel {
-	color : #4684ff;
-}
-
-.claro .dijitTreeRowSelected .dijitTreeLabel {
-	text-shadow : 1px 1px 2px #fff;
-}
-
 #feedTree img[src*='indicator_white.gif'] {
 	position : relative;
 	top : -2px;
@@ -1112,19 +1047,9 @@ span.highlight {
 	color : #cc90cc;
 }
 
-.claro .dijitTreeRow .dijitTreeExpando {
-	background-image: url("../images/treeExpandImages.png");
-	position : relative;
-	top : -1px;
-}
-
-.claro .dijitTreeRow .dijitTreeExpandoLeaf {
-	background : none;
-}
-
-body#ttrssMain #feedTree .dijitTreeRow .dijitTreeExpandoLeaf {
+/* body#ttrssMain #feedTree .dijitTreeRow .dijitTreeExpandoLeaf {
 	display : none;
-}
+} */
 
 div.enclosure_title {
 
@@ -1132,29 +1057,6 @@ div.enclosure_title {
 
 body#ttrssMain #headlines-frame .dijitCheckBox {
 	border-width : 0px;
-}
-
-.claro .dijitCheckBox {
-	background-image : url("../images/untick.png");
-	background-color : transparent;
-	width : 16px;
-	height : 16px;
-	background-position : center center;	
-	opacity : 0.6;
-	-webkit-transition : opacity 0.25s;
-	transition : opacity 0.25s;
-	border : 1px solid #eee;
-	border-radius : 2px;
-	padding : 1px;
-}
-.claro .dijitCheckBox:hover {
-	opacity : 1;
-}
-
-.claro .dijitCheckBox.dijitCheckBoxChecked {
-	border-color : #ddffdd;
-	background-image : url("../images/tick.png");
-	opacity : 1;
 }
 
 :focus {
