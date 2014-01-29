@@ -7,16 +7,6 @@ body#ttrssMain, body#ttrssPrefs, body#ttrssLogin, body {
 	font-size: 14px;
 }
 
-body#ttrssPrefs {
-	background-color : #ecf4ff;
-}
-
-body#ttrssPrefs #footer, body#ttrssPrefs #header {
-	background-color : #ecf4ff;
-	padding-left : 8px;
-	padding-right : 8px;
-}
-
 div.postReply {
 	padding : 0px;
 }
@@ -109,10 +99,19 @@ h2 {
 }
 
 h3 {
-	font-size : 12px;
+	font-size : 13px;
 	border-width : 0px 0px 1px 0px;
 	border-style : solid;
 	border-color : #ecf4ff;
+	font-weight : 600;
+	text-rendering: optimizelegibility;
+	font-family : "Segoe WP Semibold", "Segoe UI Semibold", 
+		"Segoe UI Web Semibold", "Segoe UI", "Helvetica Neue",
+		Helvetica, Arial, sans-serif;
+}
+
+h4 {
+	font-size : 14px;
 	font-weight : 600;
 	text-rendering: optimizelegibility;
 	font-family : "Segoe WP Semibold", "Segoe UI Semibold", 
@@ -336,8 +335,7 @@ div.prefHelp {
 #main-toolbar table *,
 #main-toolbar .actionChooser * {
 	text-rendering: optimizelegibility;
-	font-family : "Segoe WP Semibold", "Segoe UI Semibold", 
-		"Segoe UI Web Semibold", "Segoe UI", "Helvetica Neue",
+	font-family : "Segoe WP", "Segoe UI Web", "Segoe UI", "Helvetica Neue",
 		Helvetica, Arial, sans-serif;
 	font-size : 12px;
 
@@ -797,6 +795,7 @@ div.fatalError textarea {
   	border-color : #ddd;
 	overflow : hidden;
 	background : #f5f5f5;
+	box-shadow : inset -1px 0px 2px -1px rgba(0,0,0,0.1);
 }
 
 #headlines-wrap-inner {
@@ -808,6 +807,7 @@ div.fatalError textarea {
 #headlines-frame {
 	padding : 0px;
 	border-width : 0px;
+	border-color : #ddd;
 	margin-top : 0px;
 }
 
@@ -856,7 +856,8 @@ div.fatalError textarea {
 	padding : 0px;
 	border-color : #ddd;
 	border-width : 0px;
-	line-height: 20px;
+	line-height: 1.5;
+	font-size : 15px;
 	overflow : auto;
 }
 
@@ -956,8 +957,9 @@ div.postContent h1 {
 }
 
 div.postContent h2,
-div.postContent h3 {
-	font-size : 14px;
+div.postContent h3,
+div.postContent h4 {
+	font-size : 15px;
 }
 
 div.postContent p {
@@ -1007,8 +1009,7 @@ body#ttrssMain #feedTree {
 	height : 100%;
 	overflow-x : hidden;
 	text-rendering: optimizelegibility;
-	font-family : "Segoe WP Semibold", "Segoe UI Semibold", 
-		"Segoe UI Web Semibold", "Segoe UI", "Helvetica Neue",
+	font-family : "Segoe UI Web", "Segoe UI", "Helvetica Neue",
 		Helvetica, Arial, sans-serif;
 }
 
@@ -1047,10 +1048,6 @@ span.highlight {
 	color : #cc90cc;
 }
 
-/* body#ttrssMain #feedTree .dijitTreeRow .dijitTreeExpandoLeaf {
-	display : none;
-} */
-
 div.enclosure_title {
 
 }
@@ -1058,6 +1055,13 @@ div.enclosure_title {
 body#ttrssMain #headlines-frame .dijitCheckBox {
 	border-width : 0px;
 }
+
+body#ttrssMain #feedTree .dijitTreeRow img.dijitTreeExpandoLeaf {
+	width : 16px;
+	height : 16px;
+	vertical-align : middle;
+	position : relative;
+} 
 
 :focus {
 	outline: none; 
