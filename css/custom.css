@@ -1,0 +1,110 @@
+/* Confluence diff highlighting */
+[confluence-diff~="diff"] {
+    font-family: 'monaco', 'lucida console', 'courier new', monospace;
+    font-size: 12px;
+    line-height: 14px;
+    list-style-type: none;
+    padding: 0 3em 0 2em;
+    margin-top: 2em;
+}
+"",
+[confluence-diff~="diff-added-lines"] {
+    padding: 1px 1px 1px 2em;
+    border-left: 0.4em solid;
+    background: #dfd;
+    border-left-color: #006400;
+}
+[confluence-diff~="diff-deleted-lines"] {
+    padding: 1px 1px 1px 2em;
+    border-left: 0.4em solid;
+    color: #999;
+    background: #fdd;
+    border-left-color: #8B0000;
+    text-decoration: line-through;
+}
+[confluence-diff~="diff-changed-lines"] {
+    padding: 1px 1px 1px 2em;
+    border-left: 0.4em solid;
+    background: #fffff3;
+    border-left-color: #ffd700;
+}
+[confluence-diff~="diff-unchanged"] {
+    padding: 1px 1px 1px 2em;
+    border-left: 0.4em solid;
+    border-left-color: #D3D3D3;
+}
+[confluence-diff~="diff-snipped"] {
+    padding: 1px 1px 1px 2em;
+    border-left: 0.4em solid;
+    border-left-color: #efefef;
+    display: none;
+}
+[confluence-diff~="differror"] {
+    background: #A52A2A;
+}
+[confluence-diff~="diff-added-words"] {
+    background-color: #9f9;
+    font-weight: bolder;
+}
+[confluence-diff~="diff-added-chars"] {
+    background-color: #9f9;
+    font-weight: bolder;
+}
+
+/* Tweaks to the feed tree */
+.dijitTreeContainer[role="group"] .dijitInline[data-dojo-attach-point="indentNode"] {
+    border-right: 3px solid #EBEBEB;
+}
+.dijitTreeRowSelected .dijitInline[data-dojo-attach-point="indentNode"] {
+    border-color: #A5A5C5;
+}
+.dijitInline[data-dojo-attach-point="indentNode"] {
+    height: 100%;
+}
+body#ttrssMain #feedTree .dijitTreeRow {
+    height: 24px;
+    padding: 0;
+    margin-top: -1px;
+    margin-bottom: -1px;
+}
+.dijitTreeContent[role="presentation"],
+.dijitTreeContent[role="presentation"] > * {
+    vertical-align: middle;
+}
+.dijitTreeContent[role="presentation"] > span {
+    vertical-align: initial;
+}
+body#ttrssMain #feedTree .counterNode {
+    margin-left: 5px;
+}
+
+/* Fix framearticle-toolbar not using FontAwesome */
+#main-toolbar .actionChooser [class^="icon-"],
+#main-toolbar .actionChooser [class*=" icon-"] {
+    font-family: FontAwesome; 
+}
+
+/*@import "themes/paper/custom.css";*/
+/*
+div.cdmContentInner {
+    font-size: 13px;
+}
+div.cdmContent pre {
+    white-space: pre-wrap;
+}
+body#ttrssMain #feedTree {
+    margin : 0px;
+    margin-top: 2px;
+    margin-right : 5px;
+    line-height: inherit;
+    height: inherit;
+}
+body#ttrssMain #feedTree .dijitTreeRow {
+    height: inherit;
+}
+div.postContent p,
+body#ttrssZoom div.postContent p,
+body#ttrssZoom div.postContent img,
+div.cdmContentInner p {
+    max-width: none !important;
+}*/
