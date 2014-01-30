@@ -77,6 +77,9 @@ body#ttrssMain #feedTree .dijitTreeRow {
 body#ttrssMain #feedTree .counterNode {
     margin-left: 5px;
 }
+#feedTree img[src*='indicator_white.gif'] {
+    top: auto;
+}
 
 /* Fix framearticle-toolbar not using FontAwesome */
 #main-toolbar .actionChooser [class^="icon-"],
