@@ -7,7 +7,6 @@
     padding: 0 3em 0 2em;
     margin-top: 2em;
 }
-"",
 [confluence-diff~="diff-added-lines"] {
     padding: 1px 1px 1px 2em;
     border-left: 0.4em solid;
@@ -49,6 +48,19 @@
 [confluence-diff~="diff-added-chars"] {
     background-color: #9f9;
     font-weight: bolder;
+}
+[confluence-diff~="diff-deleted-words"] {
+    background-color: #f99;
+    text-decoration: line-through;
+    font-weight: bolder;
+}
+[confluence-diff~="diff-deleted-chars"] {
+    background-color: #f99;
+    text-decoration: line-through;
+    font-weight: bolder;
+}
+[confluence-diff~="diff-snip-link"] {
+    padding: 1em 1px 1em 1em;
 }
 
 /* Tweaks to the feed tree */
@@ -111,3 +123,14 @@ body#ttrssZoom div.postContent img,
 div.cdmContentInner p {
     max-width: none !important;
 }*/
+
+.hlTitle {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    max-width: 200px !important;
+}
+
+span.contentPreview {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
