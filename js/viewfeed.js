@@ -1768,6 +1768,15 @@ function cdmClicked(event, id) {
 			}
 
 		} else {
+
+			// Let ctrl+clicking a link inside an article open the link in a background tab.
+			// The .parents("a") is so things like linked images work as expected
+			// The .parents(".cdmInner") ensures only links in the article content are affected
+			var target = $(event.target);
+			if (target.parents("a").length && target.parents(".cdmInner").length) {
+				return true; // open the link
+			}
+
 			toggleSelected(id, true);
 
 			var elem = $("RROW-" + id);
