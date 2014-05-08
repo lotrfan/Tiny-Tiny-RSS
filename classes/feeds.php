@@ -13,12 +13,6 @@ class Feeds extends Handler_Protected {
 			$feed_id, $is_cat, $search,
 			$search_mode, $view_mode, $error, $feed_last_updated) {
 
-		$page_prev_link = "viewFeedGoPage(-1)";
-		$page_next_link = "viewFeedGoPage(1)";
-		$page_first_link = "viewFeedGoPage(0)";
-
-		$catchup_page_link = "catchupPage()";
-		$catchup_feed_link = "catchupCurrentFeed()";
 		$catchup_sel_link = "catchupSelection()";
 
 		$archive_sel_link = "archiveSelection()";
@@ -62,24 +56,24 @@ class Feeds extends Handler_Protected {
 #		$reply .= "<span>";
 		$reply .= "<span id='feed_title' class='$error_class'>";
 
-		$reply .= "</span>";
-
 		if ($feed_site_url) {
 			$last_updated = T_sprintf("Last updated: %s",
 				$feed_last_updated);
 
 			$target = "target=\"_blank\"";
 			$reply .= "<a title=\"$last_updated\" $target href=\"$feed_site_url\">".
-				truncate_string($feed_title,30)."</a>";
+				truncate_string($feed_title, 30)."</a>";
 
 			if ($error) {
 				$error = htmlspecialchars($error);
-				$reply .= "&nbsp;<img title=\"$error\" src='images/error.png' alt='error' class=\"noborder\" style=\"vertical-align : middle\">";
+				$reply .= "&nbsp;<img title=\"$error\" src='images/error.png' alt='error' class=\"noborder\">";
 			}
 
 		} else {
 			$reply .= $feed_title;
 		}
+
+		$reply .= "</span>";
 
 		$reply .= "</span>";
 
@@ -254,6 +248,8 @@ class Feeds extends Handler_Protected {
 				false, 0, $include_children);
 		}
 
+		$vfeed_group_enabled = get_pref("VFEED_GROUP_BY_FEED") && $feed != -6;
+
 		if ($_REQUEST["debug"]) $timing_info = print_checkpoint("H1", $timing_info);
 
 		$result = $qfh_ret[0];
@@ -291,8 +287,6 @@ class Feeds extends Handler_Protected {
 
 			$num_unread = 0;
 			$cur_feed_title = '';
-
-			$fresh_intl = get_pref("FRESH_ARTICLE_MAX_AGE") * 60 * 60;
 
 			if ($_REQUEST["debug"]) $timing_info = print_checkpoint("PS", $timing_info);
 
@@ -429,7 +423,7 @@ class Feeds extends Handler_Protected {
 
 				if (!get_pref('COMBINED_DISPLAY_MODE')) {
 
-					if (get_pref('VFEED_GROUP_BY_FEED')) {
+					if ($vfeed_group_enabled) {
 						if ($feed_id != $vgroup_last_feed && $line["feed_title"]) {
 
 							$cur_feed_title = $line["feed_title"];
@@ -480,7 +474,7 @@ class Feeds extends Handler_Protected {
 
 					$reply['content'] .= "</div>";
 
-					if (!get_pref('VFEED_GROUP_BY_FEED')) {
+					if (!$vfeed_group_enabled) {
 						if (@$line["feed_title"]) {
 							$rgba = @$rgba_cache[$feed_id];
 
@@ -499,12 +493,12 @@ class Feeds extends Handler_Protected {
 
 					$reply['content'] .= $score_pic;
 
-					if ($line["feed_title"] && !get_pref('VFEED_GROUP_BY_FEED')) {
+					if ($line["feed_title"] && !$vfeed_group_enabled) {
 
 						$reply['content'] .= "<span onclick=\"viewfeed($feed_id)\"
 							style=\"cursor : pointer\"
 							title=\"".htmlspecialchars($line['feed_title'])."\">
-							$feed_icon_img<span>";
+							$feed_icon_img</span>";
 					}
 
 					$reply['content'] .= "</div>";
@@ -524,7 +518,7 @@ class Feeds extends Handler_Protected {
 						$line = $p->hook_render_article_cdm($line);
 					}
 
-					if (get_pref('VFEED_GROUP_BY_FEED') && $line["feed_title"]) {
+					if ($vfeed_group_enabled && $line["feed_title"]) {
 						if ($feed_id != $vgroup_last_feed) {
 
 							$cur_feed_title = $line["feed_title"];
@@ -557,7 +551,7 @@ class Feeds extends Handler_Protected {
 					$reply['content'] .= "<div class=\"cdm $hlc_suffix $expanded_class $class\"
 						id=\"RROW-$id\" orig-feed-id='$feed_id' $mouseover_attrs>";
 
-					$reply['content'] .= "<div class=\"cdmHeader\" style=\"$row_background\">";
+					$reply['content'] .= "<div class=\"cdmHeader\">";
 					$reply['content'] .= "<div style=\"vertical-align : middle\">";
 
 					$reply['content'] .= "<input dojoType=\"dijit.form.CheckBox\"
@@ -600,7 +594,7 @@ class Feeds extends Handler_Protected {
 
 					$reply['content'] .= "</span>";
 
-					if (!get_pref('VFEED_GROUP_BY_FEED')) {
+					if (!$vfeed_group_enabled) {
 						if (@$line["feed_title"]) {
 							$rgba = @$rgba_cache[$feed_id];
 
@@ -811,8 +805,6 @@ class Feeds extends Handler_Protected {
 
 		if ($_REQUEST["debug"]) $timing_info = print_checkpoint("0", $timing_info);
 
-		$omode = $this->dbh->escape_string($_REQUEST["omode"]);
-
 		$feed = $this->dbh->escape_string($_REQUEST["feed"]);
 		$method = $this->dbh->escape_string($_REQUEST["m"]);
 		$view_mode = $this->dbh->escape_string($_REQUEST["view_mode"]);
@@ -905,7 +897,7 @@ class Feeds extends Handler_Protected {
 
 		//$topmost_article_ids = $ret[0];
 		$headlines_count = $ret[1];
-		$returned_feed = $ret[2];
+		/* $returned_feed = $ret[2]; */
 		$disable_cache = $ret[3];
 		$vgroup_last_feed = $ret[4];
 
@@ -1085,20 +1077,18 @@ class Feeds extends Handler_Protected {
 		print " <select dojoType=\"dijit.form.Select\" name=\"limit\" onchange=\"dijit.byId('feedBrowserDlg').update()\">";
 
 		foreach (array(25, 50, 100, 200) as $l) {
-			$issel = ($l == $limit) ? "selected=\"1\"" : "";
-			print "<option $issel value=\"$l\">$l</option>";
+			//$issel = ($l == $limit) ? "selected=\"1\"" : "";
+			print "<option value=\"$l\">$l</option>";
 		}
 
 		print "</select> ";
 
 		print "</div>";
 
-		$owner_uid = $_SESSION["uid"];
-
 		require_once "feedbrowser.php";
 
 		print "<ul class='browseFeedList' id='browseFeedList'>";
-		print make_feed_browser($search, 25);
+		print make_feed_browser("", 25);
 		print "</ul>";
 
 		print "<div align='center'>
@@ -1157,7 +1147,7 @@ class Feeds extends Handler_Protected {
 
 		print "<div class=\"dlgButtons\">";
 
-		if (!SPHINX_ENABLED) {
+		if (count(PluginHost::getInstance()->get_hooks(PluginHost::HOOK_SEARCH)) == 0) {
 			print "<div style=\"float : left\">
 				<a class=\"visibleLink\" target=\"_blank\" href=\"http://tt-rss.org/wiki/SearchSyntax\">".__("Search syntax")."</a>
 				</div>";
